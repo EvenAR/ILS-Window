@@ -1,0 +1,5 @@
+.vs
+.sentry-native
+*.vcxproj.user
+Debug
+Release
