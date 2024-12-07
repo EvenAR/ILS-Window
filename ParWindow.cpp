@@ -37,17 +37,12 @@ ParWindow::~ParWindow()
     this->titleBar.DestroyWindow();
 }
 
-BOOL ParWindow::CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID)
-{
-    CString className = AfxRegisterWndClass(CS_HREDRAW | CS_VREDRAW);
-    return Create(className, _T("Canvas"), WS_CHILD | WS_VISIBLE, rect, pParentWnd, nID);
-}
-
-
 int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
+
+    SetWindowPos(nullptr, 0, 0, 400, 250, SWP_NOMOVE | SWP_NOZORDER);
 
     CRect barRect(0, 0, lpCreateStruct->cx, 30);
     if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
@@ -71,9 +66,9 @@ void ParWindow::OnPaint()
 
     double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
 
-    int APP_LINE_MARGIN_TOP = 40;
-    int APP_LINE_MARGIN_BOTTOM = 90;
-    int APP_LINE_MARGIN_SIDES = 50;
+    int APP_LINE_MARGIN_TOP = 30;
+    int APP_LINE_MARGIN_SIDES = 30;
+    int APP_LINE_MARGIN_BOTTOM = 60;
 
     // Define the start and end coordintes for rendering the glidepath
     CPoint glidePathTop{ 
@@ -109,10 +104,13 @@ void ParWindow::OnPaint()
     // Draw the radar targets
     for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets)
     {
-        bool isFirstPosition = true;
+        auto it = radarTarget.positionHistory.rbegin();
+        auto end = radarTarget.positionHistory.rend();
 
-        for (const ParTargetPosition& position : radarTarget.positionHistory)
-        {
+        // Draw the history trail in reverese so the newest dots appear on top
+        for (auto it = radarTarget.positionHistory.rbegin(); it != radarTarget.positionHistory.rend(); ++it) {
+            const ParTargetPosition& position = *it;
+            bool isNewestPosition = (it + 1 == end);  // Check if the iterator is the last element
 
             if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 30) continue;
 
@@ -127,34 +125,37 @@ void ParWindow::OnPaint()
             CPoint ptSideView(xPosition, yPositionSlope);
             CPoint ptTopView(xPosition, yPositionCenterline);
 
-            // Draw cross
-            dc.SelectObject(radarTargetPen);
-            dc.MoveTo(CPoint(ptSideView.x, ptSideView.y - TARGET_RADIUS));
-            dc.LineTo(CPoint(ptSideView.x, ptSideView.y + TARGET_RADIUS));
-            dc.MoveTo(CPoint(ptSideView.x - TARGET_RADIUS, ptSideView.y));
-            dc.LineTo(CPoint(1 + ptSideView.x + TARGET_RADIUS, ptSideView.y));
+            int crossRadius = isNewestPosition ? TARGET_RADIUS : HISTORY_TRAIL_RADIUS;
 
-            if (isFirstPosition) {
+            // Draw position seen from the side
+            dc.SelectObject(isNewestPosition ? radarTargetPen : historyTrailPen);
+            dc.MoveTo(CPoint(ptSideView.x, ptSideView.y - crossRadius));
+            dc.LineTo(CPoint(ptSideView.x, ptSideView.y + crossRadius));
+            dc.MoveTo(CPoint(ptSideView.x - crossRadius, ptSideView.y));
+            dc.LineTo(CPoint(1 + ptSideView.x + crossRadius, ptSideView.y));
+
+            if (isNewestPosition) {
                 dc.SelectStockObject(NULL_BRUSH);
-                dc.Ellipse(ptSideView.x - TARGET_RADIUS, ptSideView.y - TARGET_RADIUS, ptSideView.x + TARGET_RADIUS + 1, ptSideView.y + TARGET_RADIUS + 1);
+                dc.Ellipse(ptSideView.x - crossRadius, ptSideView.y - crossRadius, ptSideView.x + crossRadius + 1, ptSideView.y + crossRadius + 1);
             }
 
-            dc.SelectObject(historyTrailPen);
-            dc.MoveTo(CPoint(ptTopView.x, ptTopView.y - TARGET_RADIUS));
-            dc.LineTo(CPoint(ptTopView.x, ptTopView.y + TARGET_RADIUS + 1));
-            dc.MoveTo(CPoint(ptTopView.x - TARGET_RADIUS, ptTopView.y));
-            dc.LineTo(CPoint(ptTopView.x + TARGET_RADIUS + 1, ptTopView.y));
+            // Draw position seen from above
+            dc.SelectObject(isNewestPosition ? radarTargetPen : historyTrailPen);
+            dc.MoveTo(CPoint(ptTopView.x, ptTopView.y - crossRadius));
+            dc.LineTo(CPoint(ptTopView.x, ptTopView.y + crossRadius + 1));
+            dc.MoveTo(CPoint(ptTopView.x - crossRadius, ptTopView.y));
+            dc.LineTo(CPoint(ptTopView.x + crossRadius + 1, ptTopView.y));
 
-            if (isFirstPosition) {
-                // Set font and color for callsign text
-                dc.SetTextColor(targetLabelColor); // White text
-                dc.SetBkMode(TRANSPARENT); // Make the background transparent
-                // Draw the callsign slightly to the right of the cross
+            if (isNewestPosition) {
+                dc.SelectStockObject(NULL_BRUSH);
+                dc.Ellipse(ptTopView.x - crossRadius, ptTopView.y - crossRadius, ptTopView.x + crossRadius + 1, ptTopView.y + crossRadius + 1);
+
+                // Callsign label
+                dc.SetTextColor(targetLabelColor);
+                dc.SetBkMode(TRANSPARENT);
                 CString targetLabel(radarTarget.callsign.c_str());
-                dc.TextOut(ptSideView.x + TARGET_RADIUS + 5, ptSideView.y - TARGET_RADIUS - 5, targetLabel);
+                dc.TextOut(ptTopView.x + crossRadius + 5, ptTopView.y - crossRadius + 10, targetLabel);
             }
-
-            isFirstPosition = false;
         }
     }
 

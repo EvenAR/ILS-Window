@@ -51,7 +51,7 @@ void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
     ParWindow* newWindow = new ParWindow(approach->title.c_str(), approach->glideslopeAngle, 25, leftToRight, windowStyling);
 
-    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 800, 600, nullptr, nullptr)) {
+    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 500, 300, nullptr, nullptr)) {
         delete newWindow;
         return; // Automatically cleaned up when the pointer is deleted
     }

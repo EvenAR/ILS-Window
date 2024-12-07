@@ -9,6 +9,7 @@
 #define WM_UPDATE_DATA (WM_USER + 1)
 
 #define TARGET_RADIUS 6
+#define HISTORY_TRAIL_RADIUS 4
 #define PI 3.14159265359
 #define FT_PER_NM 6076.11549
 
@@ -36,7 +37,6 @@ class ParWindow : public CWnd {
     public:
         ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling);
         virtual ~ParWindow();
-        BOOL CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID);
         void SetListener(IParWindowEventListener* listener);
 
     private:
