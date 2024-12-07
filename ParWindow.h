@@ -30,12 +30,12 @@ class ParWindow : public CWnd {
         void OnDestroy();
 
         CRect GetClientRectBelowTitleBar();
-        bool leftToRight = false;
+        
 
         DECLARE_MESSAGE_MAP()
 
     public:
-        ParWindow();
+        ParWindow(double appSlope, double appLength, bool leftToRight, ParStyling styling);
         BOOL CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID);
         void SetListener(IParWindowEventListener* listener);
 
@@ -46,8 +46,14 @@ class ParWindow : public CWnd {
         void DrawDiamond(CPoint pt, int size, CDC& dc);
 
         COLORREF windowBackground;
+        COLORREF targetLabelColor;
         CPen glideSlopePen;
         CBrush localizerBrush;
         CPen radarTargetPen;
+        CPen historyTrailPen;
         IParWindowEventListener* m_listener = nullptr;
+
+        double approachSlope;
+        double approachLength;
+        bool leftToRight;
 };

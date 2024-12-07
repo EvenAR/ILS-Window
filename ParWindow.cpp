@@ -14,12 +14,22 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
-ParWindow::ParWindow()
+ParWindow::ParWindow(double appSlope, double appLength, bool leftToRight, ParStyling styling) : m_CustomTopBar(
+    "Hei",
+    RGB(styling.titleBarBackgroundColor.r, styling.titleBarBackgroundColor.g, styling.titleBarBackgroundColor.b),
+    RGB(styling.titleBarTextColor.r, styling.titleBarTextColor.g, styling.titleBarTextColor.b)
+)
 {
-    windowBackground = RGB(0, 0, 17);
-    glideSlopePen.CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
-    localizerBrush.CreateSolidBrush(RGB(0, 255, 255));
-    radarTargetPen.CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+    this->approachSlope = appSlope;
+    this->approachLength = appLength;
+    this->leftToRight = leftToRight;
+
+    this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
+    this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
+    this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
+    this->localizerBrush.CreateSolidBrush(RGB(styling.localizerColor.r, styling.localizerColor.g, styling.localizerColor.b));
+    this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
+    this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
 }
 
 BOOL ParWindow::CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID)
@@ -55,13 +65,6 @@ void ParWindow::OnPaint()
     CRect rect = GetClientRectBelowTitleBar();
     dc.FillSolidRect(rect, windowBackground);
 
-    double thrAltitude = 700;
-    double runwayHeading = 15.0;
-    double bottomX = 50;
-    double bottomY = 100;
-    double approachSlope = 3.0;
-    double approachLength = 15.0;
-
     double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
 
     int APP_LINE_MARGIN_TOP = 40;
@@ -77,24 +80,28 @@ void ParWindow::OnPaint()
         rect.bottom - APP_LINE_MARGIN_BOTTOM 
     };
 
-    // Draw glideslope line ------
-    dc.SelectObject(glideSlopePen);
+    // Draw glideslope line
+    CPen* pOldPen = dc.SelectObject(&glideSlopePen);
     dc.MoveTo(ILSLine_top);
     dc.LineTo(ILSLine_bot);
+    dc.SelectObject(pOldPen);
 
     double pixelsPerFt = (ILSLine_bot.y - ILSLine_top.y) / approachHeightFt;
     double pixelsPerNauticalMile = (ILSLine_bot.x - ILSLine_top.x) / approachLength; // PS: negative when direction is left->right
 
+    // Draw localizer distance dots
+    CBrush* pOldBrush = dc.SelectObject(&localizerBrush);
     for (int i = 0; i <= approachLength; i++)           // Draw distance points. Every 5th point is large
     {
         int radius = i % 5 == 0 ? 4 : 2;
         int x = ILSLine_bot.x - i * pixelsPerNauticalMile;
         int y = ILSLine_bot.y;
 
-        dc.SelectObject(localizerBrush);
         DrawDiamond(CPoint(x, y), radius, dc);
     }
+    dc.SelectObject(pOldBrush);
 
+    // Draw the radar targets
     for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets)
     {
         bool isFirstPosition = true;
@@ -134,7 +141,7 @@ void ParWindow::OnPaint()
 
             if (isFirstPosition) {
                 // Set font and color for callsign text
-                dc.SetTextColor(RGB(255, 255, 255)); // White text
+                dc.SetTextColor(targetLabelColor); // White text
                 dc.SetBkMode(TRANSPARENT); // Make the background transparent
                 // Draw the callsign slightly to the right of the cross
                 CString targetLabel(radarTarget.callsign.c_str());
@@ -235,3 +242,4 @@ void ParWindow::SetListener(IParWindowEventListener* listener)
 {
     m_listener = listener;
 }
+
