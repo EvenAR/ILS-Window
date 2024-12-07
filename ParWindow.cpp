@@ -34,6 +34,7 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
 
 ParWindow::~ParWindow()
 {
+    this->titleBar.DestroyWindow();
 }
 
 BOOL ParWindow::CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID)

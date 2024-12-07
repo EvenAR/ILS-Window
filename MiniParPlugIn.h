@@ -15,6 +15,7 @@ private:
 
 public:
     MiniParPlugIn();
+    ~MiniParPlugIn();
     void OnWindowClosed(ParWindow* window) override;
     void OnTimer(int seconds) override;
 

@@ -37,6 +37,15 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     }
 }
 
+MiniParPlugIn::~MiniParPlugIn()
+{
+    for (const auto& window : windows) {
+        if (window) {
+            delete window;
+        }
+    }
+}
+
 void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
 {
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
