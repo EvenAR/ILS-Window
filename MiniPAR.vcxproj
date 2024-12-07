@@ -209,6 +209,7 @@
     <ClInclude Include="lib\EuroScopePlugIn.h" />
     <ClInclude Include="MiniPAR.h" />
     <ClInclude Include="MiniParPlugIn.h" />
+    <ClInclude Include="ParDataTypes.h" />
     <ClInclude Include="ParWindow.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />

@@ -67,6 +67,9 @@
     <ClInclude Include="WindowTitleBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ParDataTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MiniPAR.rc">

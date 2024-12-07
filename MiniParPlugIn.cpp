@@ -1,6 +1,23 @@
 #include "pch.h"
 #include "MiniParPlugIn.h"
 
+void MiniParPlugIn::OpenNewWindow()
+{
+    ParWindow* newWindow = new ParWindow();
+
+    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 800, 600, nullptr, nullptr)) {
+        delete newWindow;
+        return;
+    }
+
+    newWindow->SetMenu(NULL);
+    newWindow->ShowWindow(SW_SHOW);
+    newWindow->UpdateWindow();
+    newWindow->SetListener(this);
+
+    windows.push_back(newWindow);
+}
+
 MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "Precision Approach Radar",
@@ -27,15 +44,78 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
         isRegistered = true;
     }
 
-    // Create the window
-    ParWindow* pCanvas = new ParWindow();
+    OpenNewWindow();
+    OpenNewWindow();
+}
 
-    if (!pCanvas->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 800, 600, nullptr, nullptr)) {
-        delete pCanvas;
-        return;
+void MiniParPlugIn::OnTimer(int seconds)
+{
+    EuroScopePlugIn::CPosition runwayThreshold;
+    runwayThreshold.m_Latitude = 60.17555659412396;
+    runwayThreshold.m_Longitude = 11.107590905118387;
+
+    int runwayElevation = 700;
+
+
+    ParData parData;
+    std::vector<ParTargetPosition> positionHistory;
+    positionHistory.push_back({
+        1000,
+        8,
+        0
+    });
+
+    parData.radarTargets.push_back({
+        "TEST123",
+        positionHistory
+    });
+
+    for (auto rt = this->RadarTargetSelectFirst(); rt.IsValid(); rt = this->RadarTargetSelectNext(rt)) {
+        std::vector<ParTargetPosition> positionHistory;
+
+        EuroScopePlugIn::CRadarTargetPositionData previousPosition;
+
+        for (int i = 0; i <= 9; ++i) { // Get history trail
+
+            EuroScopePlugIn::CRadarTargetPositionData positionData =
+                (i == 0) ? rt.GetPosition() : rt.GetPreviousPosition(previousPosition);
+
+            if (!positionData.IsValid()) {
+                break;
+            }
+
+            positionHistory.push_back({
+                positionData.GetPressureAltitude() - runwayElevation,
+                positionData.GetPosition().DistanceTo(runwayThreshold),
+                positionData.GetPosition().DirectionTo(runwayThreshold)
+            });
+
+            previousPosition = positionData;
+        }
+
+
+        parData.radarTargets.push_back({
+            rt.GetCallsign(),
+            positionHistory
+        });
+
     }
 
-    pCanvas->SetMenu(NULL);
-    pCanvas->ShowWindow(SW_SHOW);
-    pCanvas->UpdateWindow();
+    for (const auto& window : windows) {
+        window->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&parData));
+    }
+
+}
+
+void MiniParPlugIn::OnWindowClosed(ParWindow* window)
+{
+    RemoveWindowFromList(window);
+}
+
+void MiniParPlugIn::RemoveWindowFromList(ParWindow* window)
+{
+    auto it = std::find(windows.begin(), windows.end(), window);
+    if (it != windows.end()) {
+        windows.erase(it);
+    }
 }

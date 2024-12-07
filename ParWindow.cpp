@@ -1,10 +1,6 @@
 #include "pch.h"
 #include "ParWindow.h"
 
-#include <afxwin.h>
-#include <gdiplus.h>
-using namespace Gdiplus;
-
 BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_PAINT()
     ON_WM_CREATE()
@@ -15,13 +11,23 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_NCCALCSIZE()
     ON_WM_NCPAINT()
     ON_MESSAGE(WM_UPDATE_DATA, &ParWindow::OnUpdateData)
+    ON_WM_DESTROY()
 END_MESSAGE_MAP()
+
+ParWindow::ParWindow()
+{
+    windowBackground = RGB(0, 0, 17);
+    glideSlopePen.CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
+    localizerBrush.CreateSolidBrush(RGB(0, 255, 255));
+    radarTargetPen.CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+}
 
 BOOL ParWindow::CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID)
 {
     CString className = AfxRegisterWndClass(CS_HREDRAW | CS_VREDRAW);
     return Create(className, _T("Canvas"), WS_CHILD | WS_VISIBLE, rect, pParentWnd, nID);
 }
+
 
 int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -42,37 +48,103 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
     return 0;
 }
 
+
 void ParWindow::OnPaint()
 {
-    // Clear and repaint the entire window
-    InvalidateRect(NULL, TRUE); // Marks the entire client area for repaint, TRUE clears it
-
     CPaintDC dc(this); // Device context for painting
-    CRect rect;
-    GetClientRect(&rect); // Get the client area dimensions
+    CRect rect = GetClientRectBelowTitleBar();
+    dc.FillSolidRect(rect, windowBackground);
 
-    // Example drawing: fill with a gradient
-    TRIVERTEX vertex[2];
-    GRADIENT_RECT gRect;
+    double thrAltitude = 700;
+    double runwayHeading = 15.0;
+    double bottomX = 50;
+    double bottomY = 100;
+    double approachSlope = 3.0;
+    double approachLength = 15.0;
 
-    vertex[0].x = rect.left;
-    vertex[0].y = rect.top;
-    vertex[0].Red = 0x0000;
-    vertex[0].Green = 0x8000;
-    vertex[0].Blue = 0xFFFF;
-    vertex[0].Alpha = 0x0000;
+    double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
 
-    vertex[1].x = rect.right;
-    vertex[1].y = rect.bottom;
-    vertex[1].Red = 0xFFFF;
-    vertex[1].Green = 0x0000;
-    vertex[1].Blue = 0x0000;
-    vertex[1].Alpha = 0x0000;
+    int APP_LINE_MARGIN_TOP = 40;
+    int APP_LINE_MARGIN_BOTTOM = 90;
+    int APP_LINE_MARGIN_SIDES = 50;
 
-    gRect.UpperLeft = 0;
-    gRect.LowerRight = 1;
+    CPoint ILSLine_top{ 
+        leftToRight ? rect.left + APP_LINE_MARGIN_SIDES : rect.right - APP_LINE_MARGIN_SIDES,
+        rect.top + APP_LINE_MARGIN_TOP 
+    };
+    CPoint ILSLine_bot{ 
+        leftToRight ? rect.right - APP_LINE_MARGIN_SIDES : rect.left + APP_LINE_MARGIN_SIDES,
+        rect.bottom - APP_LINE_MARGIN_BOTTOM 
+    };
 
-    dc.GradientFill(vertex, 2, &gRect, 1, GRADIENT_FILL_RECT_H);
+    // Draw glideslope line ------
+    dc.SelectObject(glideSlopePen);
+    dc.MoveTo(ILSLine_top);
+    dc.LineTo(ILSLine_bot);
+
+    double pixelsPerFt = (ILSLine_bot.y - ILSLine_top.y) / approachHeightFt;
+    double pixelsPerNauticalMile = (ILSLine_bot.x - ILSLine_top.x) / approachLength; // PS: negative when direction is left->right
+
+    for (int i = 0; i <= approachLength; i++)           // Draw distance points. Every 5th point is large
+    {
+        int radius = i % 5 == 0 ? 4 : 2;
+        int x = ILSLine_bot.x - i * pixelsPerNauticalMile;
+        int y = ILSLine_bot.y;
+
+        dc.SelectObject(localizerBrush);
+        DrawDiamond(CPoint(x, y), radius, dc);
+    }
+
+    for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets)
+    {
+        bool isFirstPosition = true;
+
+        for (const ParTargetPosition& position : radarTarget.positionHistory)
+        {
+            if (position.heightAboveThreshold > 5000 || position.directionToThreshold > 30) continue;
+
+            double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
+            double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff); 
+            double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
+
+            int xPosition = ILSLine_bot.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
+            int yPositionSlope = ILSLine_bot.y - position.heightAboveThreshold * pixelsPerFt;
+            int yPositionCenterline = ILSLine_bot.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
+
+            CPoint ptSideView(xPosition, yPositionSlope);
+            CPoint ptTopView(xPosition, yPositionCenterline);
+
+            // Draw cross
+            dc.SelectObject(radarTargetPen);
+            dc.MoveTo(CPoint(ptSideView.x, ptSideView.y - TARGET_RADIUS));
+            dc.LineTo(CPoint(ptSideView.x, ptSideView.y + TARGET_RADIUS));
+            dc.MoveTo(CPoint(ptSideView.x - TARGET_RADIUS, ptSideView.y));
+            dc.LineTo(CPoint(1 + ptSideView.x + TARGET_RADIUS, ptSideView.y));
+
+            if (isFirstPosition) {
+                dc.SelectStockObject(NULL_BRUSH);
+                dc.Ellipse(ptSideView.x - TARGET_RADIUS, ptSideView.y - TARGET_RADIUS, ptSideView.x + TARGET_RADIUS + 1, ptSideView.y + TARGET_RADIUS + 1);
+            }
+
+            dc.SelectObject(radarTargetPen);
+            dc.MoveTo(CPoint(ptTopView.x, ptTopView.y - TARGET_RADIUS));
+            dc.LineTo(CPoint(ptTopView.x, ptTopView.y + TARGET_RADIUS + 1));
+            dc.MoveTo(CPoint(ptTopView.x - TARGET_RADIUS, ptTopView.y));
+            dc.LineTo(CPoint(ptTopView.x + TARGET_RADIUS + 1, ptTopView.y));
+
+            if (isFirstPosition) {
+                // Set font and color for callsign text
+                dc.SetTextColor(RGB(255, 255, 255)); // White text
+                dc.SetBkMode(TRANSPARENT); // Make the background transparent
+                // Draw the callsign slightly to the right of the cross
+                CString targetLabel(radarTarget.callsign.c_str());
+                dc.TextOut(ptSideView.x + TARGET_RADIUS + 5, ptSideView.y - TARGET_RADIUS - 5, targetLabel);
+            }
+
+            isFirstPosition = false;
+        }
+    }
+
 }
 
 
@@ -100,9 +172,9 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 
     // Set initial window styles similar to CreateWindowEx
     cs.dwExStyle |= WS_EX_TOPMOST; // Topmost window
-    cs.style = WS_POPUP ; // Custom styles
+    cs.style = WS_POPUP | WS_SIZEBOX; // Custom styles
     cs.cx = 600; // Initial width
-    cs.cy = 900; // Initial height
+    cs.cy = 400; // Initial height
     cs.x = CW_USEDEFAULT; // Default X position
     cs.y = CW_USEDEFAULT; // Default Y position
 
@@ -111,10 +183,55 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 
 LRESULT ParWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
 {
-    // TODO: receive data
+    ParData* pData = reinterpret_cast<ParData*>(wParam);
+    if (pData) {
+        m_latestParData = *pData;
+    }
 
     // Trigger a repaint
     Invalidate();
 
     return 0;
+}
+
+
+CRect ParWindow::GetClientRectBelowTitleBar()
+{
+    CRect rect;
+    GetClientRect(&rect);  // Get full client area
+
+    // Adjust rect to exclude the top bar area (assume the top bar is 30 pixels high)
+    CRect topBarRect;
+    m_CustomTopBar.GetWindowRect(&topBarRect);
+    ScreenToClient(&topBarRect); // Convert to client coordinates
+
+    rect.top = topBarRect.bottom; // Move the top to below the top bar
+
+    return rect;
+}
+
+void ParWindow::DrawDiamond(CPoint pt, int radius, CDC& dc)
+{
+    CPoint pts[5];
+    pts[0] = CPoint(pt.x, pt.y - radius);
+    pts[1] = CPoint(pt.x + radius, pt.y);
+    pts[2] = CPoint(pt.x, pt.y + radius);
+    pts[3] = CPoint(pt.x - radius, pt.y);
+    pts[4] = CPoint(pt.x, pt.y - radius);
+
+    dc.SetPolyFillMode(ALTERNATE);
+    dc.Polygon(pts, 5);
+}
+
+void ParWindow::OnDestroy()
+{
+    if (m_listener) {
+        m_listener->OnWindowClosed(this);
+    }
+    CWnd::OnDestroy(); // Call base class cleanup
+}
+
+void ParWindow::SetListener(IParWindowEventListener* listener)
+{
+    m_listener = listener;
 }
