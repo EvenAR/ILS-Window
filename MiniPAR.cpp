@@ -71,5 +71,7 @@ void __declspec (dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlu
 }
 
 void __declspec (dllexport) EuroScopePlugInExit(void) { 
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
 	delete pMyPlugIn; 
 }

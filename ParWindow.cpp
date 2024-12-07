@@ -14,12 +14,26 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
-ParWindow::ParWindow()
+ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
+    title,
+    RGB(styling.titleBarBackgroundColor.r, styling.titleBarBackgroundColor.g, styling.titleBarBackgroundColor.b),
+    RGB(styling.titleBarTextColor.r, styling.titleBarTextColor.g, styling.titleBarTextColor.b)
+)
 {
-    windowBackground = RGB(0, 0, 17);
-    glideSlopePen.CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
-    localizerBrush.CreateSolidBrush(RGB(0, 255, 255));
-    radarTargetPen.CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+    this->approachSlope = appSlope;
+    this->approachLength = appLength;
+    this->leftToRight = leftToRight;
+
+    this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
+    this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
+    this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
+    this->localizerBrush.CreateSolidBrush(RGB(styling.localizerColor.r, styling.localizerColor.g, styling.localizerColor.b));
+    this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
+    this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
+}
+
+ParWindow::~ParWindow()
+{
 }
 
 BOOL ParWindow::CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID)
@@ -34,15 +48,14 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
 
-    // Create the custom top bar (move this to WindowTitleBar class)
-    CRect barRect(0, 0, lpCreateStruct->cx, 30); // Adjust height as needed
-    if (!m_CustomTopBar.CreateTopBar(this, barRect, IDC_TOPBAR))
+    CRect barRect(0, 0, lpCreateStruct->cx, 30);
+    if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
     {
         AfxMessageBox(_T("Failed to create top bar"));
         return -1;  // Handle error appropriately
     }
 
-    m_CustomTopBar.SetFont(GetFont());
+    titleBar.SetFont(GetFont());
     
 
     return 0;
@@ -55,61 +68,60 @@ void ParWindow::OnPaint()
     CRect rect = GetClientRectBelowTitleBar();
     dc.FillSolidRect(rect, windowBackground);
 
-    double thrAltitude = 700;
-    double runwayHeading = 15.0;
-    double bottomX = 50;
-    double bottomY = 100;
-    double approachSlope = 3.0;
-    double approachLength = 15.0;
-
     double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
 
     int APP_LINE_MARGIN_TOP = 40;
     int APP_LINE_MARGIN_BOTTOM = 90;
     int APP_LINE_MARGIN_SIDES = 50;
 
-    CPoint ILSLine_top{ 
+    // Define the start and end coordintes for rendering the glidepath
+    CPoint glidePathTop{ 
         leftToRight ? rect.left + APP_LINE_MARGIN_SIDES : rect.right - APP_LINE_MARGIN_SIDES,
         rect.top + APP_LINE_MARGIN_TOP 
     };
-    CPoint ILSLine_bot{ 
+    CPoint glidePathBottom{ 
         leftToRight ? rect.right - APP_LINE_MARGIN_SIDES : rect.left + APP_LINE_MARGIN_SIDES,
         rect.bottom - APP_LINE_MARGIN_BOTTOM 
     };
 
-    // Draw glideslope line ------
-    dc.SelectObject(glideSlopePen);
-    dc.MoveTo(ILSLine_top);
-    dc.LineTo(ILSLine_bot);
+    // Draw glideslope line
+    CPen* pOldPen = dc.SelectObject(&glideSlopePen);
+    dc.MoveTo(glidePathTop);
+    dc.LineTo(glidePathBottom);
+    dc.SelectObject(pOldPen);
 
-    double pixelsPerFt = (ILSLine_bot.y - ILSLine_top.y) / approachHeightFt;
-    double pixelsPerNauticalMile = (ILSLine_bot.x - ILSLine_top.x) / approachLength; // PS: negative when direction is left->right
+    double pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
+    double pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / approachLength; // PS: negative when direction is left->right
 
+    // Draw localizer distance dots
+    CBrush* pOldBrush = dc.SelectObject(&localizerBrush);
     for (int i = 0; i <= approachLength; i++)           // Draw distance points. Every 5th point is large
     {
         int radius = i % 5 == 0 ? 4 : 2;
-        int x = ILSLine_bot.x - i * pixelsPerNauticalMile;
-        int y = ILSLine_bot.y;
+        int x = glidePathBottom.x - i * pixelsPerNauticalMile;
+        int y = glidePathBottom.y;
 
-        dc.SelectObject(localizerBrush);
         DrawDiamond(CPoint(x, y), radius, dc);
     }
+    dc.SelectObject(pOldBrush);
 
+    // Draw the radar targets
     for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets)
     {
         bool isFirstPosition = true;
 
         for (const ParTargetPosition& position : radarTarget.positionHistory)
         {
-            if (position.heightAboveThreshold > 5000 || position.directionToThreshold > 30) continue;
+
+            if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 30) continue;
 
             double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
             double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff); 
             double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
 
-            int xPosition = ILSLine_bot.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
-            int yPositionSlope = ILSLine_bot.y - position.heightAboveThreshold * pixelsPerFt;
-            int yPositionCenterline = ILSLine_bot.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
+            int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
+            int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
+            int yPositionCenterline = glidePathBottom.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
 
             CPoint ptSideView(xPosition, yPositionSlope);
             CPoint ptTopView(xPosition, yPositionCenterline);
@@ -126,7 +138,7 @@ void ParWindow::OnPaint()
                 dc.Ellipse(ptSideView.x - TARGET_RADIUS, ptSideView.y - TARGET_RADIUS, ptSideView.x + TARGET_RADIUS + 1, ptSideView.y + TARGET_RADIUS + 1);
             }
 
-            dc.SelectObject(radarTargetPen);
+            dc.SelectObject(historyTrailPen);
             dc.MoveTo(CPoint(ptTopView.x, ptTopView.y - TARGET_RADIUS));
             dc.LineTo(CPoint(ptTopView.x, ptTopView.y + TARGET_RADIUS + 1));
             dc.MoveTo(CPoint(ptTopView.x - TARGET_RADIUS, ptTopView.y));
@@ -134,7 +146,7 @@ void ParWindow::OnPaint()
 
             if (isFirstPosition) {
                 // Set font and color for callsign text
-                dc.SetTextColor(RGB(255, 255, 255)); // White text
+                dc.SetTextColor(targetLabelColor); // White text
                 dc.SetBkMode(TRANSPARENT); // Make the background transparent
                 // Draw the callsign slightly to the right of the cross
                 CString targetLabel(radarTarget.callsign.c_str());
@@ -158,10 +170,10 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
         Invalidate(); // Mark the entire client area for repaint
     }
 
-    if (m_CustomTopBar.GetSafeHwnd())
+    if (titleBar.GetSafeHwnd())
     {
         CRect barRect(0, 0, cx, 30); // Adjust height as needed
-        m_CustomTopBar.MoveWindow(barRect);
+        titleBar.MoveWindow(barRect);
     }
 }
 
@@ -202,7 +214,7 @@ CRect ParWindow::GetClientRectBelowTitleBar()
 
     // Adjust rect to exclude the top bar area (assume the top bar is 30 pixels high)
     CRect topBarRect;
-    m_CustomTopBar.GetWindowRect(&topBarRect);
+    titleBar.GetWindowRect(&topBarRect);
     ScreenToClient(&topBarRect); // Convert to client coordinates
 
     rect.top = topBarRect.bottom; // Move the top to below the top bar
@@ -228,10 +240,12 @@ void ParWindow::OnDestroy()
     if (m_listener) {
         m_listener->OnWindowClosed(this);
     }
-    CWnd::OnDestroy(); // Call base class cleanup
+    // Call base class cleanup (this ensures MFC cleans up the window itself)
+    CWnd::OnDestroy();
 }
 
 void ParWindow::SetListener(IParWindowEventListener* listener)
 {
     m_listener = listener;
 }
+

@@ -26,28 +26,33 @@ class ParWindow : public CWnd {
         afx_msg void OnSize(UINT nType, int cx, int cy);
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);
-
-        void OnDestroy();
+        afx_msg void OnDestroy();
 
         CRect GetClientRectBelowTitleBar();
-        bool leftToRight = false;
+        
 
         DECLARE_MESSAGE_MAP()
 
     public:
-        ParWindow();
+        ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling);
+        virtual ~ParWindow();
         BOOL CreateCanvas(CWnd* pParentWnd, const RECT& rect, UINT nID);
         void SetListener(IParWindowEventListener* listener);
 
     private:
-        WindowTitleBar m_CustomTopBar;
-        CButton m_CloseButton;
+        WindowTitleBar titleBar;
         ParData m_latestParData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
 
         COLORREF windowBackground;
+        COLORREF targetLabelColor;
         CPen glideSlopePen;
         CBrush localizerBrush;
         CPen radarTargetPen;
+        CPen historyTrailPen;
         IParWindowEventListener* m_listener = nullptr;
+
+        double approachSlope;
+        double approachLength;
+        bool leftToRight;
 };

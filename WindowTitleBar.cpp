@@ -10,6 +10,12 @@ BEGIN_MESSAGE_MAP(WindowTitleBar, CStatic)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
+WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
+{
+    this->backgroundColor = backgroundColor;
+    this->textColor = textColor;
+    this->text = title;
+}
 
 BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
 {
@@ -32,14 +38,14 @@ void WindowTitleBar::OnPaint()
     GetClientRect(&rect);  // Get the client area of the control
 
     // Fill the background with your custom color
-    dc.FillSolidRect(rect, RGB(30, 30, 30));  // Dark background
+    dc.FillSolidRect(rect, this->backgroundColor);  // Dark background
 
     // Set the text color to white
-    dc.SetTextColor(RGB(255, 255, 255));
+    dc.SetTextColor(this->textColor);
     dc.SetBkMode(TRANSPARENT);  // Transparent background for text
 
     // Draw the text centered in the client area
-    dc.DrawText(_T("ILS 01L"), -1, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    dc.DrawText(_T(this->text.c_str()), -1, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 }
 
 void WindowTitleBar::OnCloseButtonClicked()
