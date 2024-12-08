@@ -13,6 +13,8 @@
 #define PI 3.14159265359
 #define FT_PER_NM 6076.11549
 
+#define TITLE_BAR_HEIGHT 20
+
 class ParWindow;
 
 class IParWindowEventListener {
@@ -28,7 +30,11 @@ class ParWindow : public CWnd {
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);
         afx_msg void OnDestroy();
+        afx_msg void OnNcPaint();
+        afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
+        afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 
+        void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
         
 

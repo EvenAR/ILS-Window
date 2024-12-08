@@ -12,6 +12,7 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_NCPAINT()
     ON_MESSAGE(WM_UPDATE_DATA, &ParWindow::OnUpdateData)
     ON_WM_DESTROY()
+    ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
@@ -44,7 +45,7 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     SetWindowPos(nullptr, 0, 0, 400, 250, SWP_NOMOVE | SWP_NOZORDER);
 
-    CRect barRect(0, 0, lpCreateStruct->cx, 30);
+    CRect barRect(0, 0, lpCreateStruct->cx, TITLE_BAR_HEIGHT);
     if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
     {
         AfxMessageBox(_T("Failed to create top bar"));
@@ -61,6 +62,32 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void ParWindow::OnPaint()
 {
     CPaintDC dc(this); // Device context for painting
+
+    // Create a memory DC for double buffering
+    CRect rect;
+    GetClientRect(&rect);
+    CBitmap bufferBitmap;
+    CDC memDC;
+
+    memDC.CreateCompatibleDC(&dc);
+    bufferBitmap.CreateCompatibleBitmap(&dc, rect.Width(), rect.Height());
+    CBitmap* pOldBitmap = memDC.SelectObject(&bufferBitmap);
+
+    // Clear the background
+    memDC.FillSolidRect(rect, windowBackground);
+
+    // Perform all drawing operations on memDC instead of dc
+    DrawContent(memDC);
+
+    // Copy the buffer to the screen
+    dc.BitBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, SRCCOPY);
+
+    // Cleanup
+    memDC.SelectObject(pOldBitmap);
+}
+
+void ParWindow::DrawContent(CDC& dc)
+{
     CRect rect = GetClientRectBelowTitleBar();
     dc.FillSolidRect(rect, windowBackground);
 
@@ -71,13 +98,13 @@ void ParWindow::OnPaint()
     int APP_LINE_MARGIN_BOTTOM = 60;
 
     // Define the start and end coordintes for rendering the glidepath
-    CPoint glidePathTop{ 
+    CPoint glidePathTop{
         leftToRight ? rect.left + APP_LINE_MARGIN_SIDES : rect.right - APP_LINE_MARGIN_SIDES,
-        rect.top + APP_LINE_MARGIN_TOP 
+        rect.top + APP_LINE_MARGIN_TOP
     };
-    CPoint glidePathBottom{ 
+    CPoint glidePathBottom{
         leftToRight ? rect.right - APP_LINE_MARGIN_SIDES : rect.left + APP_LINE_MARGIN_SIDES,
-        rect.bottom - APP_LINE_MARGIN_BOTTOM 
+        rect.bottom - APP_LINE_MARGIN_BOTTOM
     };
 
     // Draw glideslope line
@@ -115,7 +142,7 @@ void ParWindow::OnPaint()
             if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 30) continue;
 
             double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
-            double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff); 
+            double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
             double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
 
             int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
@@ -158,9 +185,7 @@ void ParWindow::OnPaint()
             }
         }
     }
-
 }
-
 
 void ParWindow::OnSize(UINT nType, int cx, int cy)
 {
@@ -174,8 +199,8 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
 
     if (titleBar.GetSafeHwnd())
     {
-        CRect barRect(0, 0, cx, 30); // Adjust height as needed
-        titleBar.MoveWindow(barRect);
+       CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT); // Adjust height as needed
+       titleBar.MoveWindow(barRect);
     }
 }
 
@@ -186,12 +211,42 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 
     // Set initial window styles similar to CreateWindowEx
     cs.dwExStyle |= WS_EX_TOPMOST; // Topmost window
-    cs.style = WS_POPUP | WS_SIZEBOX; // Custom styles
+    cs.style = WS_POPUP | WS_THICKFRAME; // Custom styles
     cs.cx = 600; // Initial width
     cs.cy = 400; // Initial height
     cs.x = CW_USEDEFAULT; // Default X position
     cs.y = CW_USEDEFAULT; // Default Y position
 
+    return TRUE;
+}
+
+void ParWindow::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
+{
+    // Call base class to calculate default non-client area
+    CWnd::OnNcCalcSize(bCalcValidRects, lpncsp);
+
+    // Reduce the top border to align with the custom title bar
+    if (bCalcValidRects)
+    {
+        //lpncsp->rgrc[0].top -= 6; // Adjust the top border height
+    }
+}
+
+void ParWindow::OnNcPaint()
+{
+    // Redraw the title bar only
+    CWindowDC dc(this);
+    CRect rect;
+    titleBar.GetWindowRect(&rect);
+    ScreenToClient(&rect);
+
+    // Perform custom drawing for the title bar if needed
+    titleBar.RedrawWindow();
+}
+
+BOOL ParWindow::OnEraseBkgnd(CDC* pDC)
+{
+    // Do nothing here to prevent background clearing
     return TRUE;
 }
 
@@ -203,6 +258,8 @@ LRESULT ParWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
     }
 
     // Trigger a repaint
+    //CRect updateRect = GetClientRectBelowTitleBar(); // Adjust based on what needs redrawing
+    //InvalidateRect(&updateRect, FALSE); // FALSE to avoid erasing the background unnecessarily
     Invalidate();
 
     return 0;

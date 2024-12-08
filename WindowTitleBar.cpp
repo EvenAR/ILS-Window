@@ -12,6 +12,7 @@ END_MESSAGE_MAP()
 
 WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
 {
+    this->windowFramePen.CreatePen(PS_SOLID, 1, RGB(100, 100, 100));
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
     this->text = title;
@@ -23,11 +24,11 @@ BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
         return FALSE;
 
     // Create the close button
-    CRect closeButtonRect(rect.right - 40, rect.top + 5, rect.right - 5, rect.top + 25);
-    if (!m_CloseButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
+    CRect closeButtonRect(rect.right - 20, rect.top + 2, rect.right - 2, rect.bottom - 2);
+    if (!closeButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
         return FALSE;
 
-    m_CloseButton.SetFont(pParentWnd->GetFont());
+    closeButton.SetFont(pParentWnd->GetFont());
     return TRUE;
 }
 
@@ -46,6 +47,10 @@ void WindowTitleBar::OnPaint()
 
     // Draw the text centered in the client area
     dc.DrawText(_T(this->text.c_str()), -1, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+    dc.SelectObject(windowFramePen);
+    dc.MoveTo(rect.left, rect.bottom - 1);
+    dc.LineTo(rect.right, rect.bottom - 1);
 }
 
 void WindowTitleBar::OnCloseButtonClicked()
@@ -57,7 +62,7 @@ void WindowTitleBar::OnCloseButtonClicked()
 void WindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CRect closeButtonRect;
-    m_CloseButton.GetWindowRect(&closeButtonRect);
+    closeButton.GetWindowRect(&closeButtonRect);
     ScreenToClient(&closeButtonRect);
 
     if (!closeButtonRect.PtInRect(point))  // If click is not on the close button
@@ -77,12 +82,12 @@ void WindowTitleBar::OnSize(UINT nType, int cx, int cy)
 {
     CStatic::OnSize(nType, cx, cy);
 
-    if (m_CloseButton.GetSafeHwnd())
+    if (closeButton.GetSafeHwnd())
     {
         // Adjust the position of the close button to stay at the right
         CRect rect;
         GetClientRect(&rect);  // Get the updated size of the title bar
-        CRect closeButtonRect(rect.right - 40, rect.top + 5, rect.right - 5, rect.top + 25);
-        m_CloseButton.MoveWindow(closeButtonRect);
+        CRect closeButtonRect(rect.right - 20, rect.top + 2, rect.right - 2, rect.bottom - 2);
+        closeButton.MoveWindow(closeButtonRect);
     }
 }

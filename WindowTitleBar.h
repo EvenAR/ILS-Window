@@ -15,6 +15,7 @@ class WindowTitleBar : public CStatic {
         BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
 
     private: 
+        CPen windowFramePen;
         COLORREF backgroundColor;
         COLORREF textColor;
         std::string text;
@@ -23,7 +24,8 @@ class WindowTitleBar : public CStatic {
         afx_msg void OnCloseButtonClicked();
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
         afx_msg void OnSize(UINT nType, int cx, int cy);
-        CButton m_CloseButton;
+
+        CButton closeButton;
 
         DECLARE_MESSAGE_MAP()
 };
