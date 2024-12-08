@@ -35,7 +35,7 @@ struct ParApproachDefinition {
     int defaultRange;
     float maxOffsetLeft;
     float maxOffsetRight;
-    ParWindow* windowReference;
+    ParWindow* windowReference = nullptr;
 };
 
 struct ParStyling {

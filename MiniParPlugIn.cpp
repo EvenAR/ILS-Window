@@ -10,7 +10,7 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "Precision Approach Radar",
     "1.0.0",
-    "Gergely Csernak",
+    "Even Rognlien",
     "Free to be distributed as source code"
 ) {
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
@@ -19,26 +19,16 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     availableApproaches = ReadApproachDefinitions(iniFilePath);
     windowStyling = ReadStyling(iniFilePath);
 
-    // Register a custom window class if not already done
-    static bool isRegistered = false;
-    if (!isRegistered)
-    {
-        WNDCLASS wndClass = { 0 };
-        wndClass.lpfnWndProc = ::DefWindowProc;
-        wndClass.hInstance = AfxGetInstanceHandle();
-        wndClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
-        wndClass.hbrBackground = (HBRUSH)::GetStockObject(WHITE_BRUSH);
-        wndClass.lpszClassName = _T("ParWindow");
+    // Register a custom window class
+    WNDCLASS wndClass = { 0 };
+    wndClass.lpfnWndProc = ::DefWindowProc;
+    wndClass.hInstance = AfxGetInstanceHandle();
+    wndClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
+    wndClass.hbrBackground = (HBRUSH)::GetStockObject(WHITE_BRUSH);
+    wndClass.lpszClassName = _T("ParWindow");
 
-        if (!AfxRegisterClass(&wndClass))
-            return;
-
-        isRegistered = true;
-    }
-
-    for (auto& app : availableApproaches) {
-        OpenNewWindow(&app);
-    }
+    if (!AfxRegisterClass(&wndClass))
+        return;
 }
 
 MiniParPlugIn::~MiniParPlugIn()
@@ -52,6 +42,8 @@ MiniParPlugIn::~MiniParPlugIn()
 
 void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
 {
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
     ParWindow* newWindow = new ParWindow(
         approach->title.c_str(), 
@@ -63,7 +55,7 @@ void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
         windowStyling
     );
 
-    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 500, 300, nullptr, nullptr)) {
+    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(approach->title.c_str()), WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 500, 300, nullptr, nullptr)) {
         delete newWindow;
         return; // Automatically cleaned up when the pointer is deleted
     }
@@ -212,23 +204,57 @@ std::string MiniParPlugIn::GetPluginDirectory() {
 
 void MiniParPlugIn::OnWindowClosed(ParWindow* window)
 {
+    auto it = std::find(windows.begin(), windows.end(), window);
+    if (it != windows.end()) {
+        windows.erase(it);
+    }
+
     // Remove window reference from approach without setting it to nullptr
     for (auto& approach : availableApproaches) {
         if (approach.windowReference == window) {
             approach.windowReference = nullptr;
-            break;
         }
     }
-
-    RemoveWindowFromList(window);
 }
 
-void MiniParPlugIn::RemoveWindowFromList(ParWindow* window)
+bool MiniParPlugIn::OnCompileCommand(const char* sCommandLine)
 {
-    auto it = std::find_if(this->windows.begin(), windows.end(),
-        [&](ParWindow* w) { return w == window; });
+    const std::string command(sCommandLine);
+    const std::string prefix = ".par ";
 
-    if (it != windows.end()) {
-        windows.erase(it);
+    if (command.rfind(prefix, 0) != 0) { // Command must start with ".par "
+        return false; // Not handled
+    }
+
+    // Extract the argument after ".par "
+    std::string argument = command.substr(prefix.length());
+
+    // Trim leading and trailing spaces
+    argument.erase(0, argument.find_first_not_of(" \t"));
+    argument.erase(argument.find_last_not_of(" \t") + 1);
+
+    if (argument.empty()) {
+        this->DisplayUserMessage("PAR plugin", "Error", "No approach specified after '.par'.", false, true, false, false, false);
+        return false;
+    }
+
+    // Find the approach by title
+    auto it = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
+        [&argument](const ParApproachDefinition& approach) {
+            return approach.title == argument;
+        });
+
+    if (it != this->availableApproaches.end()) {
+        // Approach found: Open the approach window
+        if (it->windowReference == nullptr) {
+            this->OpenNewWindow(&(*it));
+        }
+        return true; // Command handled
+    }
+    else {
+        // Approach not found
+        std::string errorMessage = "Approach '" + argument + "' not found.";
+        this->DisplayUserMessage("PAR plugin", "Error", errorMessage.c_str(), false, true, false, false, false);
+        return false; // Command not handled
     }
 }

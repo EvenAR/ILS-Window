@@ -11,7 +11,9 @@ private:
     ParStyling windowStyling;
 
     void OpenNewWindow(ParApproachDefinition* approach);
-    void RemoveWindowFromList(ParWindow* window);
+
+    // Euroscope API
+    bool OnCompileCommand(const char* sCommandLine) override;
 
 public:
     MiniParPlugIn();
