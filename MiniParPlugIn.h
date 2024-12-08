@@ -19,7 +19,7 @@ public:
     void OnWindowClosed(ParWindow* window) override;
     void OnTimer(int seconds) override;
 
-    std::vector<ParApproachDefinition> ReadApproachDefinitions(const std::string& iniFilePath);
+    std::vector<ParApproachDefinition> ReadApproachDefinitions(const std::string& jsonFilePath);
     ParStyling ReadStyling(const std::string& iniFilePath);
     std::string GetPluginDirectory();
 };

@@ -8,12 +8,13 @@
 #define IDC_TOPBAR       1002
 #define WM_UPDATE_DATA (WM_USER + 1)
 
-#define TARGET_RADIUS 6
-#define HISTORY_TRAIL_RADIUS 4
+#define LABEL_OFFSET 15
+#define TARGET_RADIUS 5
+#define HISTORY_TRAIL_RADIUS 5
 #define PI 3.14159265359
 #define FT_PER_NM 6076.11549
 
-#define TITLE_BAR_HEIGHT 20
+#define TITLE_BAR_HEIGHT 25
 
 class ParWindow;
 
@@ -61,6 +62,7 @@ class ParWindow : public CWnd {
         CBrush localizerBrush;
         CPen radarTargetPen;
         CPen historyTrailPen;
+        CPen windowBorderPen;
         IParWindowEventListener* m_listener = nullptr;
 
         double approachSlope;
@@ -69,4 +71,6 @@ class ParWindow : public CWnd {
 
         bool showZoomMessage = false;
         UINT_PTR zoomMessageTimerId = 1;
+
+        CFont euroScopeFont;
 };

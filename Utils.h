@@ -1,6 +1,5 @@
 #pragma once
 
-#include <windows.h>
 #include <string>
 #include <iomanip>
 #include <sstream>
@@ -26,12 +25,4 @@ RGB HexToRGB(const std::string& hexColor) {
     }
 
     return color;
-}
-
-RGB ReadColorFromIni(const std::string& section, const std::string& key, const std::string& iniFilePath) {
-    char colorStr[256] = { 0 };
-    GetPrivateProfileStringA(section.c_str(), key.c_str(), "", colorStr, sizeof(colorStr), iniFilePath.c_str());
-
-    std::string colorHex(colorStr);  // Convert to std::string
-    return HexToRGB(colorHex);       // Convert hex to RGB
 }

@@ -20,8 +20,8 @@ END_MESSAGE_MAP()
 
 ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
     title,
-    RGB(styling.titleBarBackgroundColor.r, styling.titleBarBackgroundColor.g, styling.titleBarBackgroundColor.b),
-    RGB(styling.titleBarTextColor.r, styling.titleBarTextColor.g, styling.titleBarTextColor.b)
+    RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
+    RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b)
 )
 {
     this->approachSlope = appSlope;
@@ -31,10 +31,13 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->zoomStatusTextColor = RGB(styling.zoomStatusTextColor.r, styling.zoomStatusTextColor.g, styling.zoomStatusTextColor.b);
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
     this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
+    this->windowBorderPen.CreatePen(PS_SOLID, 6, RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b));
     this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
     this->localizerBrush.CreateSolidBrush(RGB(styling.localizerColor.r, styling.localizerColor.g, styling.localizerColor.b));
     this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
     this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
+
+    this->euroScopeFont.CreatePointFont(100, _T("EuroScope"));
 }
 
 ParWindow::~ParWindow()
@@ -49,15 +52,14 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     SetWindowPos(nullptr, 0, 0, 400, 250, SWP_NOMOVE | SWP_NOZORDER);
 
+    auto fontSet = GetFont();
+
     CRect barRect(0, 0, lpCreateStruct->cx, TITLE_BAR_HEIGHT);
     if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
     {
         AfxMessageBox(_T("Failed to create top bar"));
         return -1;  // Handle error appropriately
     }
-
-    titleBar.SetFont(GetFont());
-    
 
     return 0;
 }
@@ -93,6 +95,8 @@ void ParWindow::OnPaint()
 void ParWindow::DrawContent(CDC& dc)
 {
     CRect rect = GetClientRectBelowTitleBar();
+    CFont* oldFont = dc.SelectObject(&euroScopeFont);
+
     dc.FillSolidRect(rect, windowBackground);
 
     double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
@@ -143,11 +147,14 @@ void ParWindow::DrawContent(CDC& dc)
             const ParTargetPosition& position = *it;
             bool isNewestPosition = (it + 1 == end);  // Check if the iterator is the last element
 
-            if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 30) continue;
-
             double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
             double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
             double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
+
+
+            if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 50 || projectedDistanceFromExtendedCenterline > 5) continue;
+
+            
 
             int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
             int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
@@ -161,15 +168,15 @@ void ParWindow::DrawContent(CDC& dc)
             // Draw position seen from the side
             dc.SelectObject(isNewestPosition ? radarTargetPen : historyTrailPen);
             dc.MoveTo(CPoint(ptSideView.x, ptSideView.y - crossRadius));
-            dc.LineTo(CPoint(ptSideView.x, ptSideView.y + crossRadius));
+            dc.LineTo(CPoint(ptSideView.x, ptSideView.y + crossRadius + 1));
             dc.MoveTo(CPoint(ptSideView.x - crossRadius, ptSideView.y));
-            dc.LineTo(CPoint(1 + ptSideView.x + crossRadius, ptSideView.y));
-
+            dc.LineTo(CPoint(ptSideView.x + crossRadius + 1, ptSideView.y));
+            
             if (isNewestPosition) {
                 dc.SelectStockObject(NULL_BRUSH);
                 dc.Ellipse(ptSideView.x - crossRadius, ptSideView.y - crossRadius, ptSideView.x + crossRadius + 1, ptSideView.y + crossRadius + 1);
             }
-
+            
             // Draw position seen from above
             dc.SelectObject(isNewestPosition ? radarTargetPen : historyTrailPen);
             dc.MoveTo(CPoint(ptTopView.x, ptTopView.y - crossRadius));
@@ -181,11 +188,14 @@ void ParWindow::DrawContent(CDC& dc)
                 dc.SelectStockObject(NULL_BRUSH);
                 dc.Ellipse(ptTopView.x - crossRadius, ptTopView.y - crossRadius, ptTopView.x + crossRadius + 1, ptTopView.y + crossRadius + 1);
 
+                dc.MoveTo(ptTopView);
+                dc.LineTo(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET);
+
                 // Callsign label
                 dc.SetTextColor(targetLabelColor);
                 dc.SetBkMode(TRANSPARENT);
                 CString targetLabel(radarTarget.callsign.c_str());
-                dc.TextOut(ptTopView.x + crossRadius + 5, ptTopView.y - crossRadius + 10, targetLabel);
+                dc.TextOut(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET, targetLabel);
             }
         }
     }
@@ -193,9 +203,6 @@ void ParWindow::DrawContent(CDC& dc)
     if (showZoomMessage)
     {
         CRect rect = GetClientRectBelowTitleBar();
-        CFont font;
-        font.CreatePointFont(80, _T("Arial"));
-        CFont* oldFont = dc.SelectObject(&font);
 
         dc.SetTextColor(this->zoomStatusTextColor);
         dc.SetBkMode(TRANSPARENT);
@@ -211,9 +218,16 @@ void ParWindow::DrawContent(CDC& dc)
         CRect textRect(position.x, position.y, position.x + textSize.cx, position.y + textSize.cy*2);
 
         dc.DrawText(zoomMessage, textRect, this->leftToRight ? DT_RIGHT : DT_LEFT);
-
-        dc.SelectObject(oldFont);
     }
+
+    // Draw custom window border
+    dc.SelectStockObject(NULL_BRUSH);
+    dc.SelectObject(windowBorderPen);
+    rect.top -= 6;
+    dc.Rectangle(rect);
+
+    // Cleanup
+    dc.SelectObject(oldFont);
 }
 
 void ParWindow::OnSize(UINT nType, int cx, int cy)

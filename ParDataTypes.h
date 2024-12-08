@@ -27,18 +27,18 @@ struct ParData {
 
 struct ParApproachDefinition {
     std::string title;
-    double thrLatitude;
-    double thrLongitude;
-    int thrAltitude;
+    double thresholdLatitude;
+    double thresholdLongitude;
+    int thresholdAltitude;
     float localizerCourse;
     float glideslopeAngle;
-    int range;
+    int defaultRange;
     ParWindow* windowReference;
 };
 
 struct ParStyling {
-    RGB titleBarBackgroundColor;
-    RGB titleBarTextColor;
+    RGB windowFrameColor;
+    RGB windowFrameTextColor;
     RGB backgroundColor;
     RGB glideslopeColor;
     RGB localizerColor;

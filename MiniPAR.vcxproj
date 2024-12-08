@@ -206,8 +206,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="IniHelpers.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="lib\EuroScopePlugIn.h" />
+    <ClInclude Include="lib\json.hpp" />
     <ClInclude Include="MiniPAR.h" />
     <ClInclude Include="MiniParPlugIn.h" />
     <ClInclude Include="ParDataTypes.h" />

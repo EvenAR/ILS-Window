@@ -70,7 +70,10 @@
     <ClInclude Include="ParDataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IniHelpers.h">
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

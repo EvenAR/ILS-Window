@@ -1,6 +1,10 @@
 #include "pch.h"
 #include "MiniParPlugIn.h"
-#include "IniHelpers.h"
+#include <json.hpp>
+#include <fstream>
+#include "Utils.h"
+
+using json = nlohmann::json;
 
 MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
@@ -11,7 +15,7 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
 ) {
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
 
-    std::string iniFilePath = GetPluginDirectory() + "//approaches.ini";
+    std::string iniFilePath = GetPluginDirectory() + "//PAR.json";
     availableApproaches = ReadApproachDefinitions(iniFilePath);
     windowStyling = ReadStyling(iniFilePath);
 
@@ -72,8 +76,8 @@ void MiniParPlugIn::OnTimer(int seconds)
         if (approach.windowReference == nullptr) continue;
 
         EuroScopePlugIn::CPosition runwayThreshold;
-        runwayThreshold.m_Latitude = approach.thrLatitude;
-        runwayThreshold.m_Longitude = approach.thrLongitude;
+        runwayThreshold.m_Latitude = approach.thresholdLatitude;
+        runwayThreshold.m_Longitude = approach.thresholdLongitude;
 
         for (auto rt = this->RadarTargetSelectFirst(); rt.IsValid(); rt = this->RadarTargetSelectNext(rt)) {
             std::vector<ParTargetPosition> positionHistory;
@@ -90,7 +94,7 @@ void MiniParPlugIn::OnTimer(int seconds)
                 }
 
                 positionHistory.push_back({
-                    positionData.GetPressureAltitude() - approach.thrAltitude,
+                    positionData.GetPressureAltitude() - approach.thresholdAltitude,
                     positionData.GetPosition().DistanceTo(runwayThreshold),
                     approach.localizerCourse - positionData.GetPosition().DirectionTo(runwayThreshold)
                     });
@@ -108,58 +112,83 @@ void MiniParPlugIn::OnTimer(int seconds)
     }
 }
 
-std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const std::string& iniFilePath) {
+std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const std::string& jsonFilePath) {
     std::vector<ParApproachDefinition> approaches;
 
-    // Read all keys from the "Approaches" section
-    char keys[1024] = { 0 };
-    GetPrivateProfileStringA("Approaches", nullptr, "", keys, sizeof(keys), iniFilePath.c_str());
+    // Open the JSON file
+    std::ifstream file(jsonFilePath);
+    if (!file.is_open()) {
+        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+        return approaches;
+    }
 
-    char* key = keys;
-    while (*key) {
-        // Read the value for the current key
-        char value[1024] = { 0 };
-        GetPrivateProfileStringA("Approaches", key, "", value, sizeof(value), iniFilePath.c_str());
+    // Parse the JSON file
+    nlohmann::json jsonData;
+    try {
+        file >> jsonData;
+    }
+    catch (const nlohmann::json::parse_error& e) {
+        this->DisplayUserMessage("PAR plugin", "Error", ("JSON parsing error: " + std::string(e.what())).c_str(), false, true, false, false, false);
+        return approaches;
+    }
 
-        if (strlen(value) > 0) {
-            // Parse the value (format: course,glideslopeAngle,range,thrAltitude,thrLatitude,thrLongitude)
-            std::stringstream ss(value);
+    // Check if "approaches" key exists
+    if (!jsonData.contains("approaches") || !jsonData["approaches"].is_array()) {
+        this->DisplayUserMessage("PAR plugin", "Error", "'approaches' key not found or is not an array.", false, true, false, false, false);
+        return approaches;
+    }
+
+    // Iterate over the approaches
+    for (const auto& approachJson : jsonData["approaches"]) {
+        try {
             ParApproachDefinition approach;
 
-            char comma;
-            ss >> approach.localizerCourse >> comma
-                >> approach.glideslopeAngle >> comma
-                >> approach.range >> comma
-                >> approach.thrAltitude >> comma
-                >> approach.thrLatitude >> comma
-                >> approach.thrLongitude;
-
-            // Set the title as the key name
-            approach.title = key;
+            // Parse individual fields
+            approach.title = approachJson.at("title").get<std::string>();
+            approach.localizerCourse = approachJson.at("localizerCourse").get<int>();
+            approach.glideslopeAngle = approachJson.at("glideslopeAngle").get<float>();
+            approach.defaultRange = approachJson.at("defaultRange").get<int>();
+            approach.thresholdAltitude = approachJson.at("thresholdAltitude").get<int>();
+            approach.thresholdLatitude = approachJson.at("thresholdLatitude").get<double>();
+            approach.thresholdLongitude = approachJson.at("thresholdLongitude").get<double>();
 
             // Add to the list
             approaches.push_back(approach);
         }
-
-        // Move to the next key
-        key += strlen(key) + 1;
+        catch (const nlohmann::json::exception& e) {
+            this->DisplayUserMessage("PAR plugin", "Error", ("Error parsing approach data: " + std::string(e.what())).c_str(), false, true, false, false, false);
+        }
     }
 
     return approaches;
 }
 
-ParStyling MiniParPlugIn::ReadStyling(const std::string& iniFilePath)
-{
+ParStyling MiniParPlugIn::ReadStyling(const std::string& jsonFilePath) {
+    std::ifstream file(jsonFilePath);
+    if (!file.is_open()) {
+        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+    }
+
+    nlohmann::json jsonData;
+    file >> jsonData;
+
+    auto readColor = [&jsonData,this](const std::string& key) -> RGB {
+        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
+            return HexToRGB(jsonData["styling"][key].get<std::string>());
+        }
+         this->DisplayUserMessage("PAR plugin", "Error", "'approaches' key not found or is not an array.", false, true, false, false, false);
+        };
+
     return ParStyling{
-        ReadColorFromIni("Styling", "titleBarBackgroundColor", iniFilePath),
-        ReadColorFromIni("Styling", "titleBarTextColor", iniFilePath),
-        ReadColorFromIni("Styling", "backgroundColor", iniFilePath),
-        ReadColorFromIni("Styling", "glideslopeColor", iniFilePath),
-        ReadColorFromIni("Styling", "localizerColor", iniFilePath),
-        ReadColorFromIni("Styling", "radarTargetColor", iniFilePath),
-        ReadColorFromIni("Styling", "historyTrailColor", iniFilePath),
-        ReadColorFromIni("Styling", "targetLabelColor", iniFilePath),
-        ReadColorFromIni("Styling", "zoomStatusTextColor", iniFilePath),
+        readColor("windowFrameColor"),
+        readColor("windowFrameTextColor"),
+        readColor("backgroundColor"),
+        readColor("glideslopeColor"),
+        readColor("localizerColor"),
+        readColor("radarTargetColor"),
+        readColor("historyTrailColor"),
+        readColor("targetLabelColor"),
+        readColor("zoomStatusTextColor"),
     };
 }
 

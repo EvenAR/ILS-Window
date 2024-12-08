@@ -12,10 +12,10 @@ END_MESSAGE_MAP()
 
 WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
 {
-    this->windowFramePen.CreatePen(PS_SOLID, 1, RGB(80, 80, 80));
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
     this->text = title;
+    this->euroScopeFont.CreatePointFont(110, _T("EuroScope"));
 }
 
 BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
@@ -28,7 +28,6 @@ BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
     if (!closeButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
         return FALSE;
 
-    closeButton.SetFont(pParentWnd->GetFont());
     return TRUE;
 }
 
@@ -37,6 +36,8 @@ void WindowTitleBar::OnPaint()
     CPaintDC dc(this);  // Device context for painting
     CRect rect;
     GetClientRect(&rect);  // Get the client area of the control
+
+    auto oldFont = dc.SelectObject(this->euroScopeFont);
 
     // Fill the background with your custom color
     dc.FillSolidRect(rect, this->backgroundColor);  // Dark background
@@ -47,12 +48,11 @@ void WindowTitleBar::OnPaint()
 
     // Draw the text centered in the client area
     CRect textPosition = rect;
-    textPosition.left += 5;
+    textPosition.left += 10;
+
     dc.DrawText(_T(this->text.c_str()), -1, textPosition, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
-    dc.SelectObject(windowFramePen);
-    dc.MoveTo(rect.left, rect.bottom - 1);
-    dc.LineTo(rect.right, rect.bottom - 1);
+    dc.SelectObject(oldFont);
 }
 
 void WindowTitleBar::OnCloseButtonClicked()
