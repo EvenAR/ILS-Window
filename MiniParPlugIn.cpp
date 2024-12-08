@@ -159,6 +159,7 @@ ParStyling MiniParPlugIn::ReadStyling(const std::string& iniFilePath)
         ReadColorFromIni("Styling", "radarTargetColor", iniFilePath),
         ReadColorFromIni("Styling", "historyTrailColor", iniFilePath),
         ReadColorFromIni("Styling", "targetLabelColor", iniFilePath),
+        ReadColorFromIni("Styling", "zoomStatusTextColor", iniFilePath),
     };
 }
 

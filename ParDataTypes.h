@@ -45,4 +45,5 @@ struct ParStyling {
     RGB radarTargetColor;
     RGB historyTrailColor;
     RGB targetLabelColor;
+    RGB zoomStatusTextColor;
 };

@@ -38,6 +38,8 @@ class ParWindow : public CWnd {
 
         void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
+
+        afx_msg void OnTimer(UINT_PTR nIDEvent);
         
 
         DECLARE_MESSAGE_MAP()
@@ -52,6 +54,7 @@ class ParWindow : public CWnd {
         ParData m_latestParData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
 
+        COLORREF zoomStatusTextColor;
         COLORREF windowBackground;
         COLORREF targetLabelColor;
         CPen glideSlopePen;
@@ -61,6 +64,9 @@ class ParWindow : public CWnd {
         IParWindowEventListener* m_listener = nullptr;
 
         double approachSlope;
-        double approachLength;
+        int approachLength;
         bool leftToRight;
+
+        bool showZoomMessage = false;
+        UINT_PTR zoomMessageTimerId = 1;
 };

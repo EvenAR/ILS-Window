@@ -15,6 +15,7 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_NCACTIVATE()
     ON_WM_GETMINMAXINFO()
     ON_WM_MOUSEWHEEL()
+    ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
@@ -27,6 +28,7 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->approachLength = appLength;
     this->leftToRight = leftToRight;
 
+    this->zoomStatusTextColor = RGB(styling.zoomStatusTextColor.r, styling.zoomStatusTextColor.g, styling.zoomStatusTextColor.b);
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
     this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
     this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
@@ -116,7 +118,7 @@ void ParWindow::DrawContent(CDC& dc)
     dc.SelectObject(pOldPen);
 
     double pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
-    double pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / approachLength; // PS: negative when direction is left->right
+    double pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / float(approachLength); // PS: negative when direction is left->right
 
     // Draw localizer distance dots
     CBrush* pOldBrush = dc.SelectObject(&localizerBrush);
@@ -186,6 +188,31 @@ void ParWindow::DrawContent(CDC& dc)
                 dc.TextOut(ptTopView.x + crossRadius + 5, ptTopView.y - crossRadius + 10, targetLabel);
             }
         }
+    }
+
+    if (showZoomMessage)
+    {
+        CRect rect = GetClientRectBelowTitleBar();
+        CFont font;
+        font.CreatePointFont(80, _T("Arial"));
+        CFont* oldFont = dc.SelectObject(&font);
+
+        dc.SetTextColor(this->zoomStatusTextColor);
+        dc.SetBkMode(TRANSPARENT);
+
+        CString zoomMessage;
+        zoomMessage.Format(_T("%d NM"), this->approachLength);
+
+        CSize textSize = dc.GetTextExtent(zoomMessage);
+        CPoint position(
+            this->leftToRight ? rect.right - textSize.cx - 5 : rect.left + 5,
+            rect.top + 5
+        );
+        CRect textRect(position.x, position.y, position.x + textSize.cx, position.y + textSize.cy*2);
+
+        dc.DrawText(zoomMessage, textRect, this->leftToRight ? DT_RIGHT : DT_LEFT);
+
+        dc.SelectObject(oldFont);
     }
 }
 
@@ -309,11 +336,11 @@ void ParWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 
 BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-    if (zDelta > 0)
+    if (zDelta > 0 && this->approachLength > 5)
     {
         this->approachLength -= 1;
     }
-    else if (zDelta < 0)
+    else if (zDelta < 0 && this->approachLength < 50)
     {
         this->approachLength += 1;
     }
@@ -321,5 +348,25 @@ BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     CRect updateRect = GetClientRectBelowTitleBar();
     InvalidateRect(updateRect);
 
+    SetTimer(zoomMessageTimerId, 1000, nullptr);
+
+    showZoomMessage = true;
+
     return TRUE;
+}
+
+void ParWindow::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == zoomMessageTimerId)
+    {
+        // Hide the zoom message
+        showZoomMessage = false;
+        KillTimer(zoomMessageTimerId);
+
+        // Invalidate to redraw without the message
+        CRect updateRect = GetClientRectBelowTitleBar();
+        InvalidateRect(updateRect);
+    }
+
+    CWnd::OnTimer(nIDEvent);
 }
