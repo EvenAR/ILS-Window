@@ -27,6 +27,8 @@ struct ParData {
 
 struct ParApproachDefinition {
     std::string title;
+    std::string airport;
+    std::string runway;
     double thresholdLatitude;
     double thresholdLongitude;
     int thresholdAltitude;
@@ -48,4 +50,8 @@ struct ParStyling {
     RGB historyTrailColor;
     RGB targetLabelColor;
     RGB rangeStatusTextColor;
+};
+
+struct ParBehaviourSettings {
+    bool openWindowsBasedOnActiveRunways;
 };

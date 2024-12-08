@@ -3,6 +3,7 @@
 #include <json.hpp>
 #include <fstream>
 #include "Utils.h"
+#include <regex>
 
 using json = nlohmann::json;
 
@@ -14,10 +15,12 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     "Free to be distributed as source code"
 ) {
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
-
-    std::string iniFilePath = GetPluginDirectory() + "//PAR.json";
-    availableApproaches = ReadApproachDefinitions(iniFilePath);
-    windowStyling = ReadStyling(iniFilePath);
+    
+    // Read configuration file
+    std::string jsonFilePath = GetPluginDirectory() + "//PAR.json";
+    availableApproaches = ReadApproachDefinitions(jsonFilePath);
+    windowStyling = ReadStyling(jsonFilePath);
+    behaviourSettings = ReadBehaviourSettings(jsonFilePath);
 
     // Register a custom window class
     WNDCLASS wndClass = { 0 };
@@ -29,6 +32,8 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
 
     if (!AfxRegisterClass(&wndClass))
         return;
+
+    SyncWithActiveRunways();
 }
 
 MiniParPlugIn::~MiniParPlugIn()
@@ -42,6 +47,8 @@ MiniParPlugIn::~MiniParPlugIn()
 
 void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
 {
+    if (approach->windowReference) return; // Already an open window for this approach
+
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
@@ -64,10 +71,12 @@ void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
     newWindow->ShowWindow(SW_SHOW);
     newWindow->UpdateWindow();
     newWindow->SetListener(this);
+    newWindow->SetForegroundWindow();
 
     approach->windowReference = newWindow;
     windows.push_back(newWindow);
 }
+
 
 void MiniParPlugIn::OnTimer(int seconds)
 {
@@ -112,6 +121,69 @@ void MiniParPlugIn::OnTimer(int seconds)
     }
 }
 
+void MiniParPlugIn::OnAirportRunwayActivityChanged()
+{
+    SyncWithActiveRunways();
+}
+
+
+void MiniParPlugIn::SyncWithActiveRunways()
+{
+    if (!behaviourSettings.openWindowsBasedOnActiveRunways) {
+        return;
+    }
+
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+    bool forArrival = true;
+
+    std::vector<ParApproachDefinition*> approachesThatShouldBeOpen;
+
+    for (auto airport = this->SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT); airport.IsValid(); airport = this->SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
+        if (airport.IsElementActive(!forArrival)) {
+            auto activeAirportIcao = std::string(airport.GetName());
+            for (auto runway = this->SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY); runway.IsValid(); runway = this->SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY)) {
+                auto runwayAirportName = trimString(std::string(runway.GetAirportName()));
+                if (runwayAirportName == activeAirportIcao) {
+                    for (int runwayDirection = 0; runwayDirection < 2; runwayDirection++) {
+                        if (runway.IsElementActive(!forArrival, runwayDirection) && runwayAirportName == activeAirportIcao) {
+                            auto runwayName = trimString(std::string(runway.GetRunwayName(runwayDirection)));
+                            auto approach = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
+                                [&runwayAirportName, runwayName](const ParApproachDefinition& approach) {
+                                    return approach.airport == runwayAirportName && approach.runway == runwayName;
+                                });
+
+                            if (approach != this->availableApproaches.end()) {
+                                approachesThatShouldBeOpen.push_back(&(*approach));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto& window : windows) {
+        // Find windows that are not in the updated list of appraoches that should be open
+        bool shouldBeClosed = true;
+        for (auto& approach : approachesThatShouldBeOpen) {
+            if (approach->windowReference == window) {
+                shouldBeClosed = false;
+            }
+        }
+        if (shouldBeClosed) {
+            window->DestroyWindow();
+        }
+    }
+
+    // Open windows that should be open
+    for (auto& approach : approachesThatShouldBeOpen) {
+        if (approach->windowReference == nullptr) {
+            this->OpenNewWindow(approach);
+        }
+    }
+}
+
 std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const std::string& jsonFilePath) {
     std::vector<ParApproachDefinition> approaches;
 
@@ -145,6 +217,8 @@ std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const 
 
             // Parse individual fields
             approach.title = approachJson.at("title").get<std::string>();
+            approach.airport = approachJson.at("airport").get<std::string>();
+            approach.runway = approachJson.at("runway").get<std::string>();
             approach.localizerCourse = approachJson.at("localizerCourse").get<int>();
             approach.glideslopeAngle = approachJson.at("glideslopeAngle").get<float>();
             approach.defaultRange = approachJson.at("defaultRange").get<int>();
@@ -195,6 +269,22 @@ ParStyling MiniParPlugIn::ReadStyling(const std::string& jsonFilePath) {
     };
 }
 
+ParBehaviourSettings MiniParPlugIn::ReadBehaviourSettings(const std::string& jsonFilePath) {
+    std::ifstream file(jsonFilePath);
+    if (!file.is_open()) {
+        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+    }
+
+    nlohmann::json jsonData;
+    file >> jsonData;
+
+    nlohmann::json behaviourSettings = jsonData["behaviour"];
+
+    return ParBehaviourSettings{
+        behaviourSettings.at("openWindowsBasedOnActiveRunways").get<bool>()
+    };
+}
+
 std::string MiniParPlugIn::GetPluginDirectory() {
     char modulePath[MAX_PATH];
     GetModuleFileNameA((HINSTANCE)&__ImageBase, modulePath, sizeof(modulePath));
@@ -227,14 +317,10 @@ bool MiniParPlugIn::OnCompileCommand(const char* sCommandLine)
     }
 
     // Extract the argument after ".par "
-    std::string argument = command.substr(prefix.length());
-
-    // Trim leading and trailing spaces
-    argument.erase(0, argument.find_first_not_of(" \t"));
-    argument.erase(argument.find_last_not_of(" \t") + 1);
+    std::string argument = stringToUpper(trimString(command.substr(prefix.length())));
 
     if (argument.empty()) {
-        this->DisplayUserMessage("PAR plugin", "Error", "No approach specified after '.par'.", false, true, false, false, false);
+        this->DisplayUserMessage("PAR plugin", "Error", "No approach name specified after '.par'.", false, true, false, false, false);
         return false;
     }
 
