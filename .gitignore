@@ -2,4 +2,12 @@
 .sentry-native
 *.vcxproj.user
 Debug
-Release
+Release/
+ipaddr.txt
+version.txt
+SectorFileProviderDescriptor.txt
+euroscope_sector_providers.txt
+
+# But include DLL and JSON files inside the Release folder
+!Release/*.dll
+!Release/*.json
