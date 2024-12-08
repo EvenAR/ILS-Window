@@ -46,7 +46,7 @@ class ParWindow : public CWnd {
         DECLARE_MESSAGE_MAP()
 
     public:
-        ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling);
+        ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, ParStyling styling);
         virtual ~ParWindow();
         void SetListener(IParWindowEventListener* listener);
 
@@ -55,7 +55,7 @@ class ParWindow : public CWnd {
         ParData m_latestParData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
 
-        COLORREF zoomStatusTextColor;
+        COLORREF rangeStatusTextColor;
         COLORREF windowBackground;
         COLORREF targetLabelColor;
         CPen glideSlopePen;
@@ -68,6 +68,8 @@ class ParWindow : public CWnd {
         double approachSlope;
         int approachLength;
         bool leftToRight;
+        float maxOffsetLeft;
+        float maxOffsetRight;
 
         bool showZoomMessage = false;
         UINT_PTR zoomMessageTimerId = 1;

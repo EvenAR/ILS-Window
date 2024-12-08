@@ -24,7 +24,7 @@ BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
         return FALSE;
 
     // Create the close button
-    CRect closeButtonRect(rect.right - 19, rect.top + 4, rect.right - 4, rect.bottom - 2);
+    CRect closeButtonRect(rect.right - 23, rect.top + 4, rect.right - 4, rect.bottom - 2);
     if (!closeButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
         return FALSE;
 
@@ -89,7 +89,7 @@ void WindowTitleBar::OnSize(UINT nType, int cx, int cy)
         // Adjust the position of the close button to stay at the right
         CRect rect;
         GetClientRect(&rect);  // Get the updated size of the title bar
-        CRect closeButtonRect(rect.right - 19, rect.top + 4, rect.right - 4, rect.bottom - 2);
+        CRect closeButtonRect(rect.right - 23, rect.top + 4, rect.right - 4, rect.bottom - 2);
         closeButton.MoveWindow(closeButtonRect);
     }
 }

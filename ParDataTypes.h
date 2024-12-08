@@ -33,6 +33,8 @@ struct ParApproachDefinition {
     float localizerCourse;
     float glideslopeAngle;
     int defaultRange;
+    float maxOffsetLeft;
+    float maxOffsetRight;
     ParWindow* windowReference;
 };
 
@@ -45,5 +47,5 @@ struct ParStyling {
     RGB radarTargetColor;
     RGB historyTrailColor;
     RGB targetLabelColor;
-    RGB zoomStatusTextColor;
+    RGB rangeStatusTextColor;
 };

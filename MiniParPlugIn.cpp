@@ -53,7 +53,15 @@ MiniParPlugIn::~MiniParPlugIn()
 void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
 {
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
-    ParWindow* newWindow = new ParWindow(approach->title.c_str(), approach->glideslopeAngle, 25, leftToRight, windowStyling);
+    ParWindow* newWindow = new ParWindow(
+        approach->title.c_str(), 
+        approach->glideslopeAngle, 
+        approach->defaultRange, 
+        leftToRight,
+        approach->maxOffsetLeft, 
+        approach->maxOffsetRight,
+        windowStyling
+    );
 
     if (!newWindow->CreateEx(0, _T("ParWindow"), _T(""), WS_POPUP, 100, 100, 500, 300, nullptr, nullptr)) {
         delete newWindow;
@@ -151,6 +159,9 @@ std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const 
             approach.thresholdAltitude = approachJson.at("thresholdAltitude").get<int>();
             approach.thresholdLatitude = approachJson.at("thresholdLatitude").get<double>();
             approach.thresholdLongitude = approachJson.at("thresholdLongitude").get<double>();
+            approach.maxOffsetLeft = approachJson.at("maxOffsetLeft").get<double>();
+            approach.maxOffsetRight = approachJson.at("maxOffsetRight").get<double>();
+
 
             // Add to the list
             approaches.push_back(approach);
@@ -188,7 +199,7 @@ ParStyling MiniParPlugIn::ReadStyling(const std::string& jsonFilePath) {
         readColor("radarTargetColor"),
         readColor("historyTrailColor"),
         readColor("targetLabelColor"),
-        readColor("zoomStatusTextColor"),
+        readColor("rangeStatusTextColor"),
     };
 }
 

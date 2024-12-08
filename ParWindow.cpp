@@ -18,7 +18,7 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
+ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, ParStyling styling) : titleBar(
     title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
     RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b)
@@ -27,8 +27,10 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->approachSlope = appSlope;
     this->approachLength = appLength;
     this->leftToRight = leftToRight;
+    this->maxOffsetLeft = maxOffsetLeft;
+    this->maxOffsetRight = maxOffsetRight;
 
-    this->zoomStatusTextColor = RGB(styling.zoomStatusTextColor.r, styling.zoomStatusTextColor.g, styling.zoomStatusTextColor.b);
+    this->rangeStatusTextColor = RGB(styling.rangeStatusTextColor.r, styling.rangeStatusTextColor.g, styling.rangeStatusTextColor.b);
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
     this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
     this->windowBorderPen.CreatePen(PS_SOLID, 6, RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b));
@@ -151,10 +153,22 @@ void ParWindow::DrawContent(CDC& dc)
             double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
             double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
 
-
-            if (position.heightAboveThreshold > 10000 || abs(position.directionToThreshold) > 50 || projectedDistanceFromExtendedCenterline > 5) continue;
-
-            
+            if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetLeft) {
+                // Too far left
+                continue;
+            }
+            if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetRight) {
+                // Too far right
+                continue;
+            }
+            if (projectedDistanceFromThreshold < 0) {
+                // Wrong side of the threshold
+                continue;
+            }
+            if (it->heightAboveThreshold > approachHeightFt) {
+                // Too high
+                continue;
+            }
 
             int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
             int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
@@ -204,7 +218,7 @@ void ParWindow::DrawContent(CDC& dc)
     {
         CRect rect = GetClientRectBelowTitleBar();
 
-        dc.SetTextColor(this->zoomStatusTextColor);
+        dc.SetTextColor(this->rangeStatusTextColor);
         dc.SetBkMode(TRANSPARENT);
 
         CString zoomMessage;
