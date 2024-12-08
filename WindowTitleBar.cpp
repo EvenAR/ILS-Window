@@ -12,7 +12,7 @@ END_MESSAGE_MAP()
 
 WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
 {
-    this->windowFramePen.CreatePen(PS_SOLID, 1, RGB(100, 100, 100));
+    this->windowFramePen.CreatePen(PS_SOLID, 1, RGB(80, 80, 80));
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
     this->text = title;
@@ -24,7 +24,7 @@ BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
         return FALSE;
 
     // Create the close button
-    CRect closeButtonRect(rect.right - 20, rect.top + 2, rect.right - 2, rect.bottom - 2);
+    CRect closeButtonRect(rect.right - 19, rect.top + 4, rect.right - 4, rect.bottom - 2);
     if (!closeButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
         return FALSE;
 
@@ -46,7 +46,9 @@ void WindowTitleBar::OnPaint()
     dc.SetBkMode(TRANSPARENT);  // Transparent background for text
 
     // Draw the text centered in the client area
-    dc.DrawText(_T(this->text.c_str()), -1, rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    CRect textPosition = rect;
+    textPosition.left += 5;
+    dc.DrawText(_T(this->text.c_str()), -1, textPosition, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
     dc.SelectObject(windowFramePen);
     dc.MoveTo(rect.left, rect.bottom - 1);
@@ -87,7 +89,7 @@ void WindowTitleBar::OnSize(UINT nType, int cx, int cy)
         // Adjust the position of the close button to stay at the right
         CRect rect;
         GetClientRect(&rect);  // Get the updated size of the title bar
-        CRect closeButtonRect(rect.right - 20, rect.top + 2, rect.right - 2, rect.bottom - 2);
+        CRect closeButtonRect(rect.right - 19, rect.top + 4, rect.right - 4, rect.bottom - 2);
         closeButton.MoveWindow(closeButtonRect);
     }
 }

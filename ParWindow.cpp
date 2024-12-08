@@ -9,10 +9,12 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_LBUTTONUP()     // Add the message map entry for WM_LBUTTONUP
     ON_WM_CTLCOLOR() // Handle custom control colors
     ON_WM_NCCALCSIZE()
-    ON_WM_NCPAINT()
     ON_MESSAGE(WM_UPDATE_DATA, &ParWindow::OnUpdateData)
     ON_WM_DESTROY()
     ON_WM_ERASEBKGND()
+    ON_WM_NCACTIVATE()
+    ON_WM_GETMINMAXINFO()
+    ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, ParStyling styling) : titleBar(
@@ -204,6 +206,12 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
     }
 }
 
+BOOL ParWindow::OnNcActivate(BOOL bActive)
+{
+    // Prevent Windows from redrawing the NC area
+    return TRUE;
+}
+
 BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 {
     if (!CWnd::PreCreateWindow(cs))
@@ -222,26 +230,12 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 
 void ParWindow::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
-    // Call base class to calculate default non-client area
     CWnd::OnNcCalcSize(bCalcValidRects, lpncsp);
 
-    // Reduce the top border to align with the custom title bar
     if (bCalcValidRects)
     {
-        //lpncsp->rgrc[0].top -= 6; // Adjust the top border height
+        lpncsp->rgrc[0].top -= 6; // Adjust the top border height
     }
-}
-
-void ParWindow::OnNcPaint()
-{
-    // Redraw the title bar only
-    CWindowDC dc(this);
-    CRect rect;
-    titleBar.GetWindowRect(&rect);
-    ScreenToClient(&rect);
-
-    // Perform custom drawing for the title bar if needed
-    titleBar.RedrawWindow();
 }
 
 BOOL ParWindow::OnEraseBkgnd(CDC* pDC)
@@ -258,9 +252,8 @@ LRESULT ParWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
     }
 
     // Trigger a repaint
-    //CRect updateRect = GetClientRectBelowTitleBar(); // Adjust based on what needs redrawing
-    //InvalidateRect(&updateRect, FALSE); // FALSE to avoid erasing the background unnecessarily
-    Invalidate();
+    CRect updateRect = GetClientRectBelowTitleBar(); // Adjust based on what needs redrawing
+    InvalidateRect(&updateRect, FALSE); // FALSE to avoid erasing the background unnecessarily
 
     return 0;
 }
@@ -308,3 +301,25 @@ void ParWindow::SetListener(IParWindowEventListener* listener)
     m_listener = listener;
 }
 
+void ParWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+    lpMMI->ptMinTrackSize.x = 300; // Minimum width in pixels
+    lpMMI->ptMinTrackSize.y = 200; // Minimum height in pixels
+}
+
+BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    if (zDelta > 0)
+    {
+        this->approachLength -= 1;
+    }
+    else if (zDelta < 0)
+    {
+        this->approachLength += 1;
+    }
+
+    CRect updateRect = GetClientRectBelowTitleBar();
+    InvalidateRect(updateRect);
+
+    return TRUE;
+}

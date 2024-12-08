@@ -30,9 +30,11 @@ class ParWindow : public CWnd {
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);
         afx_msg void OnDestroy();
-        afx_msg void OnNcPaint();
         afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
         afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+        afx_msg BOOL OnNcActivate(BOOL bActive);
+        afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+        afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 
         void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
