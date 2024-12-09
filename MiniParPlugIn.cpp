@@ -62,16 +62,28 @@ void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
         windowStyling
     );
 
-    if (!newWindow->CreateEx(0, _T("ParWindow"), _T(approach->title.c_str()), WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 500, 300, nullptr, nullptr)) {
+    auto hwndPopup = newWindow->CreateEx(
+        WS_EX_NOACTIVATE | WS_EX_TOPMOST,
+        _T("ParWindow"),
+        _T(approach->title.c_str()),
+        WS_POPUP | WS_BORDER,
+        int(windows.size()) * 50, // x-position
+        int(windows.size()) * 50, // y-position
+        300,                      // Default width
+        200,                      // Default height
+        nullptr,
+        nullptr
+    );
+
+    if (!hwndPopup) {
         delete newWindow;
-        return; // Automatically cleaned up when the pointer is deleted
+        return;
     }
 
     newWindow->SetMenu(NULL);
-    newWindow->ShowWindow(SW_SHOW);
+    newWindow->ShowWindow(SW_SHOWNOACTIVATE); // Show but don't steal focus
     newWindow->UpdateWindow();
     newWindow->SetListener(this);
-    newWindow->SetForegroundWindow();
 
     approach->windowReference = newWindow;
     windows.push_back(newWindow);

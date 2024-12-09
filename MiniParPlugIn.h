@@ -16,6 +16,8 @@ private:
 
     bool autoOpenWhenRunwaysChanges = true;
 
+    CPoint nextWindowSpawnPointM{ 50, 50 };
+
     // Euroscope API
     bool OnCompileCommand(const char* sCommandLine) override;
     void OnTimer(int seconds) override;
