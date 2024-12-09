@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "MiniParPlugIn.h"
+#include "ParPlugin.h"
 #include <json.hpp>
 #include <fstream>
-#include "Utils.h"
+#include "ParUtils.h"
 #include <regex>
 
 using json = nlohmann::json;
 
-MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
+ParPlugin::ParPlugin(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "Precision Approach Radar",
     "1.0.0",
@@ -17,7 +17,7 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
     
     // Read configuration file
-    std::string jsonFilePath = GetPluginDirectory() + "//MiniPAR.json";
+    std::string jsonFilePath = GetPluginDirectory() + "//PAR.json";
     availableApproaches = ReadApproachDefinitions(jsonFilePath);
     windowStyling = ReadStyling(jsonFilePath);
     behaviourSettings = ReadBehaviourSettings(jsonFilePath);
@@ -36,7 +36,7 @@ MiniParPlugIn::MiniParPlugIn(void) : CPlugIn(
     SyncWithActiveRunways();
 }
 
-MiniParPlugIn::~MiniParPlugIn()
+ParPlugin::~ParPlugin()
 {
     for (const auto& window : windows) {
         if (window) {
@@ -45,7 +45,7 @@ MiniParPlugIn::~MiniParPlugIn()
     }
 }
 
-void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
+void ParPlugin::OpenNewWindow(ParApproachDefinition* approach)
 {
     if (approach->windowReference) return; // Already an open window for this approach
 
@@ -90,7 +90,7 @@ void MiniParPlugIn::OpenNewWindow(ParApproachDefinition* approach)
 }
 
 
-void MiniParPlugIn::OnTimer(int seconds)
+void ParPlugin::OnTimer(int seconds)
 {
     for (const auto& approach : availableApproaches) {
         ParData parData;
@@ -133,13 +133,13 @@ void MiniParPlugIn::OnTimer(int seconds)
     }
 }
 
-void MiniParPlugIn::OnAirportRunwayActivityChanged()
+void ParPlugin::OnAirportRunwayActivityChanged()
 {
     SyncWithActiveRunways();
 }
 
 
-void MiniParPlugIn::SyncWithActiveRunways()
+void ParPlugin::SyncWithActiveRunways()
 {
     if (!behaviourSettings.openWindowsBasedOnActiveRunways) {
         return;
@@ -196,7 +196,7 @@ void MiniParPlugIn::SyncWithActiveRunways()
     }
 }
 
-std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const std::string& jsonFilePath) {
+std::vector<ParApproachDefinition> ParPlugin::ReadApproachDefinitions(const std::string& jsonFilePath) {
     std::vector<ParApproachDefinition> approaches;
 
     // Open the JSON file
@@ -252,7 +252,7 @@ std::vector<ParApproachDefinition> MiniParPlugIn::ReadApproachDefinitions(const 
     return approaches;
 }
 
-ParStyling MiniParPlugIn::ReadStyling(const std::string& jsonFilePath) {
+ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
         this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
@@ -281,7 +281,7 @@ ParStyling MiniParPlugIn::ReadStyling(const std::string& jsonFilePath) {
     };
 }
 
-ParBehaviourSettings MiniParPlugIn::ReadBehaviourSettings(const std::string& jsonFilePath) {
+ParBehaviourSettings ParPlugin::ReadBehaviourSettings(const std::string& jsonFilePath) {
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
         this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
@@ -290,21 +290,21 @@ ParBehaviourSettings MiniParPlugIn::ReadBehaviourSettings(const std::string& jso
     nlohmann::json jsonData;
     file >> jsonData;
 
-    nlohmann::json behaviourSettings = jsonData["behaviour"];
+    nlohmann::json jsonObject = jsonData["behaviour"];
 
     return ParBehaviourSettings{
-        behaviourSettings.at("openWindowsBasedOnActiveRunways").get<bool>()
+        jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>()
     };
 }
 
-std::string MiniParPlugIn::GetPluginDirectory() {
+std::string ParPlugin::GetPluginDirectory() {
     char modulePath[MAX_PATH];
     GetModuleFileNameA((HINSTANCE)&__ImageBase, modulePath, sizeof(modulePath));
     std::string pluginDirectory = std::string(modulePath).substr(0, std::string(modulePath).find_last_of("\\/"));
     return pluginDirectory;
 }
 
-void MiniParPlugIn::OnWindowClosed(ParWindow* window)
+void ParPlugin::OnWindowClosed(ParWindow* window)
 {
     auto it = std::find(windows.begin(), windows.end(), window);
     if (it != windows.end()) {
@@ -319,7 +319,7 @@ void MiniParPlugIn::OnWindowClosed(ParWindow* window)
     }
 }
 
-bool MiniParPlugIn::OnCompileCommand(const char* sCommandLine)
+bool ParPlugin::OnCompileCommand(const char* sCommandLine)
 {
     const std::string command(sCommandLine);
     const std::string prefix = ".par ";

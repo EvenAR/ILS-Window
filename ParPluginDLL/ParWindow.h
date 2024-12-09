@@ -2,7 +2,7 @@
 #include <afxwin.h>
 #include "ParDataTypes.h"
 
-#include "WindowTitleBar.h"
+#include "ParWindowTitleBar.h"
 
 #define IDC_CLOSE_BUTTON 1001
 #define IDC_TOPBAR       1002
@@ -51,7 +51,7 @@ class ParWindow : public CWnd {
         void SetListener(IParWindowEventListener* listener);
 
     private:
-        WindowTitleBar titleBar;
+        ParWindowTitleBar titleBar;
         ParData m_latestParData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
 

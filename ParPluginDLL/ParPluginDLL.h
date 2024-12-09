@@ -1,6 +1,3 @@
-// MiniPAR.h : main header file for the MiniPAR DLL
-//
-
 #pragma once
 
 #ifndef __AFXWIN_H__
@@ -8,16 +5,12 @@
 #endif
 
 #include "resource.h"		// main symbols
-#include "MiniParPlugIn.h"
+#include "ParPlugIn.h"
 
-// CMiniPARApp
-// See MiniPAR.cpp for the implementation of this class
-//
-
-class CMiniPARApp : public CWinApp
+class ParPluginDLL : public CWinApp
 {
 public:
-	CMiniPARApp();
+	ParPluginDLL();
 
 // Overrides
 public:

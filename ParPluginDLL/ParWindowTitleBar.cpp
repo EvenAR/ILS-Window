@@ -1,16 +1,16 @@
 #include "pch.h"
-#include "WindowTitleBar.h"
+#include "ParWindowTitleBar.h"
 
-IMPLEMENT_DYNAMIC(WindowTitleBar, CStatic)
+IMPLEMENT_DYNAMIC(ParWindowTitleBar, CStatic)
 
-BEGIN_MESSAGE_MAP(WindowTitleBar, CStatic)
+BEGIN_MESSAGE_MAP(ParWindowTitleBar, CStatic)
     ON_WM_PAINT()
     ON_WM_SIZE()  // Handle resizing
-    ON_BN_CLICKED(IDC_CLOSE_BUTTON, &WindowTitleBar::OnCloseButtonClicked)
+    ON_BN_CLICKED(IDC_CLOSE_BUTTON, &ParWindowTitleBar::OnCloseButtonClicked)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
+ParWindowTitleBar::ParWindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
 {
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
@@ -18,7 +18,7 @@ WindowTitleBar::WindowTitleBar(const std::string& title, COLORREF backgroundColo
     this->euroScopeFont.CreatePointFont(110, _T("EuroScope"));
 }
 
-BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
+BOOL ParWindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
 {
     if (!CWnd::Create(NULL, NULL, WS_CHILD | WS_VISIBLE, rect, pParentWnd, nID))
         return FALSE;
@@ -31,7 +31,7 @@ BOOL WindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
     return TRUE;
 }
 
-void WindowTitleBar::OnPaint()
+void ParWindowTitleBar::OnPaint()
 {
     CPaintDC dc(this);  // Device context for painting
     CRect rect;
@@ -55,13 +55,13 @@ void WindowTitleBar::OnPaint()
     dc.SelectObject(oldFont);
 }
 
-void WindowTitleBar::OnCloseButtonClicked()
+void ParWindowTitleBar::OnCloseButtonClicked()
 {
     GetParent()->PostMessage(WM_CLOSE);
 }
 
 
-void WindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
+void ParWindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CRect closeButtonRect;
     closeButton.GetWindowRect(&closeButtonRect);
@@ -80,7 +80,7 @@ void WindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     CWnd::OnLButtonDown(nFlags, point);
 }
 
-void WindowTitleBar::OnSize(UINT nType, int cx, int cy)
+void ParWindowTitleBar::OnSize(UINT nType, int cx, int cy)
 {
     CStatic::OnSize(nType, cx, cy);
 

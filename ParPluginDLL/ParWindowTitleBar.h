@@ -4,12 +4,12 @@
 
 #define IDC_CLOSE_BUTTON 1001
 
-class WindowTitleBar : public CStatic {
-    DECLARE_DYNAMIC(WindowTitleBar)
+class ParWindowTitleBar : public CStatic {
+    DECLARE_DYNAMIC(ParWindowTitleBar)
 
     public:
-        WindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor);
-        virtual ~WindowTitleBar() {}
+        ParWindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor);
+        virtual ~ParWindowTitleBar() {}
 
         // Initialize the top bar
         BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);

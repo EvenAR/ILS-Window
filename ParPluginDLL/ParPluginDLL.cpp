@@ -1,9 +1,9 @@
-// MiniPAR.cpp : Defines the initialization routines for the DLL.
+// ParPluginDLL.cpp : Defines the initialization routines for the DLL.
 //
 
 #include "pch.h"
 #include "framework.h"
-#include "MiniPAR.h"
+#include "ParPluginDLL.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -34,44 +34,45 @@
 //		details.
 //
 
-// CMiniPARApp
+// ParApp
 
-BEGIN_MESSAGE_MAP(CMiniPARApp, CWinApp)
+BEGIN_MESSAGE_MAP(ParPluginDLL, CWinApp)
 END_MESSAGE_MAP()
 
 
-// CMiniPARApp construction
+// ParApp construction
 
-CMiniPARApp::CMiniPARApp()
+ParPluginDLL::ParPluginDLL()
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
 
 
-// The one and only CMiniPARApp object
+// The one and only ParApp object
 
-CMiniPARApp theApp;
+ParPluginDLL theApp;
 
 
-// CMiniPARApp initialization
+// ParApp initialization
 
-BOOL CMiniPARApp::InitInstance()
+BOOL ParPluginDLL::InitInstance()
 {
 	CWinApp::InitInstance();
 
 	return TRUE;
 }
 
-MiniParPlugIn* pMyPlugIn;
+
+ParPlugin* pMyPlugIn;
 
 void __declspec (dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance) {     // allocate 
-	*ppPlugInInstance = pMyPlugIn = new MiniParPlugIn;
+	*ppPlugInInstance = pMyPlugIn = new ParPlugin;
 
 }
 
-void __declspec (dllexport) EuroScopePlugInExit(void) { 
+void __declspec (dllexport) EuroScopePlugInExit(void) {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-	delete pMyPlugIn; 
+	delete pMyPlugIn;
 }

@@ -15,27 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MiniPAR.cpp">
+    <ClCompile Include="ParPluginDLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MiniParPlugIn.cpp">
+    <ClCompile Include="ParWindowTitleBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParPlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ParWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowTitleBar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MiniPAR.def">
+    <None Include="ParPluginDLL.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="res\MiniPAR.rc2">
+    <None Include="res\ParPluginDLL.rc2">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -49,36 +49,36 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MiniPAR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lib\EuroScopePlugIn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniParPlugIn.h">
+    <ClInclude Include="ParPluginDLL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WindowTitleBar.h">
+    <ClInclude Include="ParWindowTitleBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParDataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="ParPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lib\json.hpp">
+    <ClInclude Include="..\lib\EuroScopePlugIn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MiniPAR.rc">
+    <ResourceCompile Include="ParPluginDLL.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

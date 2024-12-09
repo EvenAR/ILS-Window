@@ -1,10 +1,11 @@
-#include "lib/EuroScopePlugIn.h"
+#pragma once
+
+#include <EuroScopePlugIn.h>
 #include "ParWindow.h"
 #include "ParDataTypes.h"
 #include <vector>
 
-#pragma once
-class MiniParPlugIn : public EuroScopePlugIn::CPlugIn, IParWindowEventListener {
+class ParPlugin : public EuroScopePlugIn::CPlugIn, IParWindowEventListener {
 private:
     std::vector<ParWindow*> windows;
     std::vector<ParApproachDefinition> availableApproaches;
@@ -24,8 +25,8 @@ private:
     void OnAirportRunwayActivityChanged() override;
 
 public:
-    MiniParPlugIn();
-    ~MiniParPlugIn();
+    ParPlugin();
+    ~ParPlugin();
     void OnWindowClosed(ParWindow* window) override;
 
     std::vector<ParApproachDefinition> ReadApproachDefinitions(const std::string& jsonFilePath);
