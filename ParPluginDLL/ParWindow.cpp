@@ -52,10 +52,6 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
 
-    SetWindowPos(nullptr, 0, 0, 400, 250, SWP_NOMOVE | SWP_NOZORDER);
-
-    auto fontSet = GetFont();
-
     CRect barRect(0, 0, lpCreateStruct->cx, TITLE_BAR_HEIGHT);
     if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
     {
@@ -271,14 +267,6 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
 {
     if (!CWnd::PreCreateWindow(cs))
         return FALSE;
-
-    // Set initial window styles similar to CreateWindowEx
-    cs.dwExStyle |= WS_EX_TOPMOST; // Topmost window
-    cs.style = WS_POPUP | WS_THICKFRAME; // Custom styles
-    cs.cx = 600; // Initial width
-    cs.cy = 400; // Initial height
-    cs.x = CW_USEDEFAULT; // Default X position
-    cs.y = CW_USEDEFAULT; // Default Y position
 
     return TRUE;
 }
