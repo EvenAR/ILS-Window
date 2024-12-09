@@ -22,8 +22,8 @@
             "glideslopeAngle": 3.0,
             "defaultRange": 20,
             "thresholdAltitude": 657,
-            "thresholdLatitude": 60.18463724,
-            "thresholdLongitude": 11.0734543,
+            "thresholdLatitude": 60.18852247065597,
+            "thresholdLongitude": 11.075825379708164,
             "maxOffsetLeft": 10,
             "maxOffsetRight": 0.8
         },
@@ -35,8 +35,8 @@
             "glideslopeAngle": 3.0,
             "defaultRange": 20,
             "thresholdAltitude": 671,
-            "thresholdLatitude": 60.17621990,
-            "thresholdLongitude": 11.1080420,
+            "thresholdLatitude": 60.17944563259686,
+            "thresholdLongitude": 11.109903692687693,
             "maxOffsetLeft": 0.8,
             "maxOffsetRight": 10
         },
@@ -48,8 +48,8 @@
             "glideslopeAngle": 3.0,
             "defaultRange": 20,
             "thresholdAltitude": 676,
-            "thresholdLatitude": 60.20101438,
-            "thresholdLongitude": 11.1222507,
+            "thresholdLatitude": 60.19710451695898,
+            "thresholdLongitude": 11.120122819417759,
             "maxOffsetLeft": 10,
             "maxOffsetRight": 0.8
         },
@@ -61,8 +61,8 @@
             "glideslopeAngle": 3.0,
             "defaultRange": 20,
             "thresholdAltitude": 682,
-            "thresholdLatitude": 60.21552672,
-            "thresholdLongitude": 11.0912237,
+            "thresholdLatitude": 60.21219519110321,
+            "thresholdLongitude": 11.089482290988855,
             "maxOffsetLeft": 0.8,
             "maxOffsetRight": 10
         }
