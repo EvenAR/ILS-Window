@@ -1,3 +1,3 @@
 # Precision Approach Radar for EuroScope
 
-![image](https://github.com/user-attachments/assets/b1324374-bb01-4b6a-8054-2da19d8bf4a2)
+![image](https://github.com/user-attachments/assets/0201034f-86b3-4248-8308-578cb8daef09)
