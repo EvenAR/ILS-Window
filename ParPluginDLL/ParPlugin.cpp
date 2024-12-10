@@ -67,10 +67,10 @@ void ParPlugin::OpenNewWindow(ParApproachDefinition* approach)
         _T("ParWindow"),
         _T(approach->title.c_str()),
         WS_POPUP | WS_THICKFRAME,
-        int(windows.size()) * 50, // x-position
-        int(windows.size()) * 50, // y-position
-        300,                      // Default width
-        200,                      // Default height
+        int(windows.size()) * 50,       // x-position
+        int(windows.size()) * 50 + 100, // y-position
+        300,                            // Default width
+        200,                            // Default height
         nullptr,
         nullptr
     );
