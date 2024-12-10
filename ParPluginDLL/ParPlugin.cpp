@@ -123,10 +123,22 @@ void ParPlugin::OnTimer(int seconds)
                 previousPosition = positionData;
             }
 
+            auto correlatedFlightPlan = rt.GetCorrelatedFlightPlan();
+
+            std::string aircraftIcaoType = correlatedFlightPlan.IsValid()
+                ? std::string(correlatedFlightPlan.GetFlightPlanData().GetAircraftFPType())
+                : std::string("");
+
+            char aircraftWtc = correlatedFlightPlan.IsValid()
+                ? correlatedFlightPlan.GetFlightPlanData().GetAircraftWtc()
+                : ' ';
+
             parData.radarTargets.push_back({
                 rt.GetCallsign(),
+                aircraftIcaoType,
+                aircraftWtc,
                 positionHistory
-                });
+             });
         }
 
         approach.windowReference->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&parData));

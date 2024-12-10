@@ -18,6 +18,8 @@ struct ParTargetPosition {
 
 struct ParRadarTarget {
     std::string callsign;
+    std::string icaoType;
+    char wtcCategory;
     std::vector<ParTargetPosition> positionHistory;
 };
 

@@ -204,8 +204,19 @@ void ParWindow::DrawContent(CDC& dc)
                 // Callsign label
                 dc.SetTextColor(targetLabelColor);
                 dc.SetBkMode(TRANSPARENT);
-                CString targetLabel(radarTarget.callsign.c_str());
-                dc.TextOut(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET, targetLabel);
+
+                CString targetLabel;
+                targetLabel.Format(_T("%s\n%s %c"),
+                    radarTarget.callsign.c_str(),
+                    radarTarget.icaoType.c_str(),
+                    radarTarget.wtcCategory);
+
+                CRect textRect(ptTopView.x + LABEL_OFFSET,
+                    ptTopView.y + LABEL_OFFSET,
+                    ptTopView.x + LABEL_OFFSET + 200,
+                    ptTopView.y + LABEL_OFFSET + 100);
+
+                dc.DrawText(targetLabel, &textRect, DT_LEFT | DT_TOP);
             }
         }
     }
