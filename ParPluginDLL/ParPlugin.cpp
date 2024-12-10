@@ -11,8 +11,8 @@ ParPlugin::ParPlugin(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "Precision Approach Radar",
     "1.0.0",
-    "Even Rognlien",
-    "Free to be distributed as source code"
+    "https://tinyurl.com/euroscopepar",
+    "Open source"
 ) {
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
     
