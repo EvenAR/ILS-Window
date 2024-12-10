@@ -99,18 +99,18 @@ void ParWindow::DrawContent(CDC& dc)
 
     double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
 
-    int APP_LINE_MARGIN_TOP = 30;
-    int APP_LINE_MARGIN_SIDES = 30;
-    int APP_LINE_MARGIN_BOTTOM = 60;
+    const int CALC_SIDE_MARGIN   = rect.Width() * APP_LINE_MARGIN_SIDES;
+    const int CALC_TOP_MARGIN    = rect.Height() * APP_LINE_MARGIN_TOP;
+    const int CALC_BOTTOM_MARGIN = rect.Height() * APP_LINE_MARGIN_BOTTOM;
 
     // Define the start and end coordintes for rendering the glidepath
     CPoint glidePathTop{
-        leftToRight ? rect.left + APP_LINE_MARGIN_SIDES : rect.right - APP_LINE_MARGIN_SIDES,
-        rect.top + APP_LINE_MARGIN_TOP
+        leftToRight ? rect.left + CALC_SIDE_MARGIN : rect.right - CALC_SIDE_MARGIN,
+        rect.top + CALC_TOP_MARGIN
     };
     CPoint glidePathBottom{
-        leftToRight ? rect.right - APP_LINE_MARGIN_SIDES : rect.left + APP_LINE_MARGIN_SIDES,
-        rect.bottom - APP_LINE_MARGIN_BOTTOM
+        leftToRight ? rect.right - CALC_SIDE_MARGIN : rect.left + CALC_SIDE_MARGIN,
+        rect.bottom - CALC_BOTTOM_MARGIN
     };
 
     // Draw glideslope line
