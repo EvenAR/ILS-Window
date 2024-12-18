@@ -277,8 +277,16 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
             return HexToRGB(jsonData["styling"][key].get<std::string>());
         }
-         this->DisplayUserMessage("PAR plugin", "Error", "'approaches' key not found or is not an array.", false, true, false, false, false);
-        };
+        this->DisplayUserMessage("PAR plugin", "Error", ("'" + key + "' key not found.").c_str(), false, true, false, false, false);
+    };
+
+    auto readUnsignedInt = [&jsonData, this](const std::string& key) -> unsigned int {
+        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
+            return jsonData["styling"][key].get<unsigned int>();
+        }
+        this->DisplayUserMessage("PAR plugin", "Error", ("'" + key + "' key not found or is not an unsigned integer.").c_str(), false, true, false, false, false);
+        return 0; // Default value when key is not found or is not an unsigned integer
+    };
 
     return ParStyling{
         readColor("windowFrameColor"),
@@ -291,6 +299,7 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         readColor("historyTrailColor"),
         readColor("targetLabelColor"),
         readColor("rangeStatusTextColor"),
+        readUnsignedInt("fontSize")
     };
 }
 

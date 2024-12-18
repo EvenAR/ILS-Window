@@ -53,6 +53,7 @@ struct ParStyling {
     RGB historyTrailColor;
     RGB targetLabelColor;
     RGB rangeStatusTextColor;
+    unsigned int fontSize;
 };
 
 struct ParBehaviourSettings {

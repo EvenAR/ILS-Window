@@ -41,7 +41,8 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
     this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
 
-    this->euroScopeFont.CreatePointFont(100, _T("EuroScope"));
+    float fontPointsSize = styling.fontSize * 72 / 96;
+    this->euroScopeFont.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
 }
 
 ParWindow::~ParWindow()
@@ -345,7 +346,7 @@ void ParWindow::OnResizeStart()
 
 void ParWindow::OnCloseButtonClicked()
 {
-    this->CloseWindow();
+    this->DestroyWindow();
 }
 
 void ParWindow::OnDestroy()

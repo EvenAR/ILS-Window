@@ -6,13 +6,14 @@
         "windowFrameColor": "#9FC3C2",
         "windowFrameTextColor": "#000000",
         "windowOuterFrameColor": "#000000",
-        "backgroundColor": "#140E13",
-        "glideslopeColor": "#588e8c",
-        "localizerColor": "#588e8c",
+        "backgroundColor": "#0d090c",
+        "glideslopeColor": "#9FC3C2",
+        "localizerColor": "#9FC3C2",
         "radarTargetColor": "#FFFFFF",
-        "historyTrailColor": "#666666",
+        "historyTrailColor": "#FFFFFF",
         "targetLabelColor": "#FFFFFF",
-        "rangeStatusTextColor": "#BBBB00"
+        "rangeStatusTextColor": "#BBBB00",
+        "fontSize": 12
     },
     "approaches": [
         {
