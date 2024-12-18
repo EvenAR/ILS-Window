@@ -5,6 +5,7 @@
     "styling": {
         "windowFrameColor": "#9FC3C2",
         "windowFrameTextColor": "#000000",
+        "windowOuterFrameColor": "#000000",
         "backgroundColor": "#140E13",
         "glideslopeColor": "#588e8c",
         "localizerColor": "#588e8c",

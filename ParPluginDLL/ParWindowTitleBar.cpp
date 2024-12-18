@@ -10,12 +10,15 @@ BEGIN_MESSAGE_MAP(ParWindowTitleBar, CStatic)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-ParWindowTitleBar::ParWindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor)
+ParWindowTitleBar::ParWindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IParWindowTitleBarEventListener* listener)
 {
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
+    this->outerFramePen.CreatePen(PS_SOLID, 1, outerFrameColor);
+
     this->text = title;
     this->euroScopeFont.CreatePointFont(110, _T("EuroScope"));
+    this->eventListener = listener;
 }
 
 BOOL ParWindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
@@ -23,10 +26,14 @@ BOOL ParWindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT n
     if (!CWnd::Create(NULL, NULL, WS_CHILD | WS_VISIBLE, rect, pParentWnd, nID))
         return FALSE;
 
-    // Create the close button
-    CRect closeButtonRect(rect.right - 23, rect.top + 4, rect.right - 4, rect.bottom - 2);
-    if (!closeButton.Create(_T("X"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, closeButtonRect, this, IDC_CLOSE_BUTTON))
+    // Create buttons with default settings
+    if (!resizeButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_RESIZE_BUTTON) ||
+        !menuButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_MENU_BUTTON) ||
+        !closeButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_CLOSE_BUTTON))
         return FALSE;
+
+    // Position buttons
+    PositionButtons(rect);
 
     return TRUE;
 }
@@ -53,22 +60,30 @@ void ParWindowTitleBar::OnPaint()
     dc.DrawText(_T(this->text.c_str()), -1, textPosition, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
     dc.SelectObject(oldFont);
+
+    dc.SelectStockObject(NULL_BRUSH);
+    dc.SelectObject(this->outerFramePen);
+    rect.bottom += 1; // Make the bottom border invisible
+    dc.Rectangle(rect);
 }
 
 void ParWindowTitleBar::OnCloseButtonClicked()
 {
-    GetParent()->PostMessage(WM_CLOSE);
+    this->eventListener->OnCloseButtonClicked();
 }
 
 
 void ParWindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    CRect closeButtonRect;
-    closeButton.GetWindowRect(&closeButtonRect);
-    ScreenToClient(&closeButtonRect);
+    CRect resizeButtonRect;
+    resizeButton.GetClientRect(&resizeButtonRect);
+    resizeButton.ClientToScreen(&resizeButtonRect);
 
-    if (!closeButtonRect.PtInRect(point))  // If click is not on the close button
+    if (resizeButtonRect.PtInRect(point))  // If click is not on the close button
     {
+        this->eventListener->OnResizeStart();
+    }
+    else {
         // Simulate dragging the window
         CWnd* pParent = GetParent();
         if (pParent)
@@ -84,12 +99,43 @@ void ParWindowTitleBar::OnSize(UINT nType, int cx, int cy)
 {
     CStatic::OnSize(nType, cx, cy);
 
-    if (closeButton.GetSafeHwnd())
+    if (closeButton.GetSafeHwnd() && menuButton.GetSafeHwnd() && resizeButton.GetSafeHwnd())
     {
-        // Adjust the position of the close button to stay at the right
         CRect rect;
         GetClientRect(&rect);  // Get the updated size of the title bar
-        CRect closeButtonRect(rect.right - 23, rect.top + 4, rect.right - 4, rect.bottom - 2);
-        closeButton.MoveWindow(closeButtonRect);
+        PositionButtons(rect);
     }
+}
+
+void ParWindowTitleBar::PositionButtons(const CRect& rect)
+{
+    const int margin = 6;
+    const int btnWidth = 16; // Button width
+    const int btnHeight = 14; // Button width
+    const int top = rect.top + 8;
+    const int bottom = top + btnHeight;
+
+    int right = rect.right - margin - 3;
+    int left = right - btnWidth;
+
+    // Position the resize button
+    CRect resizeButtonRect(left, top, right, bottom);
+    if (resizeButton.GetSafeHwnd())
+        resizeButton.MoveWindow(resizeButtonRect);
+
+    right = left - margin;
+    left = right - btnWidth;
+
+    // Position the menu button
+    CRect menuButtonRect(left, top, right, bottom);
+    if (menuButton.GetSafeHwnd())
+        menuButton.MoveWindow(menuButtonRect);
+
+    right = left - margin;
+    left = right - btnWidth;
+
+    // Position the close button
+    CRect closeButtonRect(left, top, right, bottom);
+    if (closeButton.GetSafeHwnd())
+        closeButton.MoveWindow(closeButtonRect);
 }

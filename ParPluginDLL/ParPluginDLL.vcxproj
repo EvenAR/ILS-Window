@@ -195,6 +195,10 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ILSWindowCloseButton.cpp" />
+    <ClCompile Include="ILSWindowMenuButton.cpp" />
+    <ClCompile Include="ILSWindowResizeButton.cpp" />
+    <ClCompile Include="ILSWindowTitleBarButton.cpp" />
     <ClCompile Include="ParPlugin.cpp" />
     <ClCompile Include="ParPluginDLL.cpp" />
     <ClCompile Include="ParWindow.cpp" />
@@ -214,6 +218,10 @@
     <ClInclude Include="..\lib\EuroScopePlugIn.h" />
     <ClInclude Include="..\lib\json.hpp" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="ILSWindowCloseButton.h" />
+    <ClInclude Include="ILSWindowMenuButton.h" />
+    <ClInclude Include="ILSWindowResizeButton.h" />
+    <ClInclude Include="ILSWindowTitleBarButton.h" />
     <ClInclude Include="ParPluginDLL.h" />
     <ClInclude Include="ParDataTypes.h" />
     <ClInclude Include="ParPlugin.h" />

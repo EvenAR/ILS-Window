@@ -8,7 +8,6 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_LBUTTONDOWN()   // Add the message map entry for WM_LBUTTONDOWN
     ON_WM_LBUTTONUP()     // Add the message map entry for WM_LBUTTONUP
     ON_WM_CTLCOLOR() // Handle custom control colors
-    ON_WM_NCCALCSIZE()
     ON_MESSAGE(WM_UPDATE_DATA, &ParWindow::OnUpdateData)
     ON_WM_DESTROY()
     ON_WM_ERASEBKGND()
@@ -21,7 +20,9 @@ END_MESSAGE_MAP()
 ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, ParStyling styling) : titleBar(
     title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
-    RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b)
+    RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
+    RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b),
+    this
 )
 {
     this->approachSlope = appSlope;
@@ -34,6 +35,7 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
     this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
     this->windowBorderPen.CreatePen(PS_SOLID, 6, RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b));
+    this->windowOuterBorderPen.CreatePen(PS_SOLID, 1, RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b));
     this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
     this->localizerBrush.CreateSolidBrush(RGB(styling.localizerColor.r, styling.localizerColor.g, styling.localizerColor.b));
     this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
@@ -244,8 +246,13 @@ void ParWindow::DrawContent(CDC& dc)
     // Draw custom window border
     dc.SelectStockObject(NULL_BRUSH);
     dc.SelectObject(windowBorderPen);
-    rect.top -= 6;
     dc.Rectangle(rect);
+
+    // Draw outer window border
+    CRect fullWindowArea;
+    GetClientRect(&fullWindowArea);
+    dc.SelectObject(windowOuterBorderPen);
+    dc.Rectangle(fullWindowArea);
 
     // Cleanup
     dc.SelectObject(oldFont);
@@ -263,7 +270,7 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
 
     if (titleBar.GetSafeHwnd())
     {
-       CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT); // Adjust height as needed
+       CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT); 
        titleBar.MoveWindow(barRect);
     }
 }
@@ -280,16 +287,6 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
         return FALSE;
 
     return TRUE;
-}
-
-void ParWindow::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
-{
-    CWnd::OnNcCalcSize(bCalcValidRects, lpncsp);
-
-    if (bCalcValidRects)
-    {
-        lpncsp->rgrc[0].top -= 6; // Adjust the top border height
-    }
 }
 
 BOOL ParWindow::OnEraseBkgnd(CDC* pDC)
@@ -341,6 +338,16 @@ void ParWindow::DrawDiamond(CPoint pt, int radius, CDC& dc)
     dc.Polygon(pts, 5);
 }
 
+void ParWindow::OnResizeStart()
+{
+    SendMessage(WM_NCLBUTTONDOWN, HTTOPRIGHT, NULL); // Resize using the top right corner
+}
+
+void ParWindow::OnCloseButtonClicked()
+{
+    this->CloseWindow();
+}
+
 void ParWindow::OnDestroy()
 {
     if (m_listener) {
@@ -357,8 +364,8 @@ void ParWindow::SetListener(IParWindowEventListener* listener)
 
 void ParWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-    lpMMI->ptMinTrackSize.x = 300; // Minimum width in pixels
-    lpMMI->ptMinTrackSize.y = 200; // Minimum height in pixels
+    lpMMI->ptMinTrackSize.x = 150; // Minimum width in pixels
+    lpMMI->ptMinTrackSize.y = 100; // Minimum height in pixels
 }
 
 BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)

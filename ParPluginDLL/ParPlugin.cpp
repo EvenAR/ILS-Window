@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 ParPlugin::ParPlugin(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
-    "Precision Approach Radar",
+    "ILS Window",
     "1.0.0",
     "https://tinyurl.com/euroscopepar",
     "Open source"
@@ -66,7 +66,7 @@ void ParPlugin::OpenNewWindow(ParApproachDefinition* approach)
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
         _T("ParWindow"),
         _T(approach->title.c_str()),
-        WS_POPUP | WS_THICKFRAME,
+        WS_POPUP,
         int(windows.size()) * 50,       // x-position
         int(windows.size()) * 50 + 100, // y-position
         300,                            // Default width
@@ -283,6 +283,7 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
     return ParStyling{
         readColor("windowFrameColor"),
         readColor("windowFrameTextColor"),
+        readColor("windowOuterFrameColor"),
         readColor("backgroundColor"),
         readColor("glideslopeColor"),
         readColor("localizerColor"),

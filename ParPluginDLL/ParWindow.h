@@ -17,7 +17,7 @@
 #define PI 3.14159265359
 #define FT_PER_NM 6076.11549
 
-#define TITLE_BAR_HEIGHT 25
+#define TITLE_BAR_HEIGHT 27
 
 class ParWindow;
 
@@ -26,7 +26,7 @@ public:
     virtual void OnWindowClosed(ParWindow* window) = 0;
 };
 
-class ParWindow : public CWnd {
+class ParWindow : public CWnd, IParWindowTitleBarEventListener {
     protected:
         afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
         afx_msg  void OnPaint();
@@ -34,7 +34,6 @@ class ParWindow : public CWnd {
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);
         afx_msg void OnDestroy();
-        afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
         afx_msg BOOL OnEraseBkgnd(CDC* pDC);
         afx_msg BOOL OnNcActivate(BOOL bActive);
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
@@ -66,6 +65,7 @@ class ParWindow : public CWnd {
         CPen radarTargetPen;
         CPen historyTrailPen;
         CPen windowBorderPen;
+        CPen windowOuterBorderPen;
         IParWindowEventListener* m_listener = nullptr;
 
         double approachSlope;
@@ -78,4 +78,8 @@ class ParWindow : public CWnd {
         UINT_PTR zoomMessageTimerId = 1;
 
         CFont euroScopeFont;
+
+        // For handling events from the title bar
+        void OnResizeStart() override;
+        void OnCloseButtonClicked() override;
 };

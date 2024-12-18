@@ -45,6 +45,7 @@ struct ParApproachDefinition {
 struct ParStyling {
     RGB windowFrameColor;
     RGB windowFrameTextColor;
+    RGB windowOuterFrameColor;
     RGB backgroundColor;
     RGB glideslopeColor;
     RGB localizerColor;
