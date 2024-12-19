@@ -1,16 +1,16 @@
 #pragma once
 #include <afxwin.h>
 #include "ParDataTypes.h"
-
 #include "ParWindowTitleBar.h"
+#include <set>
 
 #define IDC_CLOSE_BUTTON 1001
 #define IDC_TOPBAR       1002
 #define WM_UPDATE_DATA (WM_USER + 1)
 
-#define APP_LINE_MARGIN_TOP 0.1
-#define APP_LINE_MARGIN_SIDES 0.1
-#define APP_LINE_MARGIN_BOTTOM 0.3
+#define APP_LINE_MARGIN_TOP 0.08
+#define APP_LINE_MARGIN_SIDES 0.08
+#define APP_LINE_MARGIN_BOTTOM 0.35
 #define LABEL_OFFSET 15
 #define TARGET_RADIUS 5
 #define HISTORY_TRAIL_RADIUS 5
@@ -38,13 +38,14 @@ class ParWindow : public CWnd, IParWindowTitleBarEventListener {
         afx_msg BOOL OnNcActivate(BOOL bActive);
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
         afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+        afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 
         void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
 
         afx_msg void OnTimer(UINT_PTR nIDEvent);
-        
 
+        
         DECLARE_MESSAGE_MAP()
 
     public:
@@ -56,6 +57,8 @@ class ParWindow : public CWnd, IParWindowTitleBarEventListener {
         ParWindowTitleBar titleBar;
         ParData m_latestParData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
+        bool CalculateTargetCoordinates(const ParTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
+        void UpdateDimentions();
 
         COLORREF rangeStatusTextColor;
         COLORREF windowBackground;
@@ -67,12 +70,23 @@ class ParWindow : public CWnd, IParWindowTitleBarEventListener {
         CPen windowBorderPen;
         CPen windowOuterBorderPen;
         IParWindowEventListener* m_listener = nullptr;
+        ParTagMode tagMode;
+        bool showTagsByDefault;
+
+        std::set<std::string> clickedTargets;
 
         double approachSlope;
         int approachLength;
         bool leftToRight;
         float maxOffsetLeft;
         float maxOffsetRight;
+
+        // Dimentions
+        float approachHeightFt;
+        double pixelsPerFt;
+        double pixelsPerNauticalMile;
+        CPoint glidePathTop;
+        CPoint glidePathBottom;
 
         bool showZoomMessage = false;
         UINT_PTR zoomMessageTimerId = 1;

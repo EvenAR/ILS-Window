@@ -18,6 +18,7 @@ struct ParTargetPosition {
 
 struct ParRadarTarget {
     std::string callsign;
+    std::string squawk;
     std::string icaoType;
     char wtcCategory;
     std::vector<ParTargetPosition> positionHistory;
@@ -42,6 +43,11 @@ struct ParApproachDefinition {
     ParWindow* windowReference = nullptr;
 };
 
+enum ParTagMode {
+    Squawk,
+    Callsign
+};
+
 struct ParStyling {
     RGB windowFrameColor;
     RGB windowFrameTextColor;
@@ -54,6 +60,8 @@ struct ParStyling {
     RGB targetLabelColor;
     RGB rangeStatusTextColor;
     unsigned int fontSize;
+    bool showTagByDefault;
+    ParTagMode defaultTagMode;
 };
 
 struct ParBehaviourSettings {

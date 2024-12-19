@@ -43,6 +43,8 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
 
     float fontPointsSize = styling.fontSize * 72 / 96;
     this->euroScopeFont.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
+    this->tagMode = styling.defaultTagMode;
+    this->showTagsByDefault = styling.showTagByDefault;
 }
 
 ParWindow::~ParWindow()
@@ -100,30 +102,11 @@ void ParWindow::DrawContent(CDC& dc)
 
     dc.FillSolidRect(rect, windowBackground);
 
-    double approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
-
-    const int CALC_SIDE_MARGIN   = rect.Width() * APP_LINE_MARGIN_SIDES;
-    const int CALC_TOP_MARGIN    = rect.Height() * APP_LINE_MARGIN_TOP;
-    const int CALC_BOTTOM_MARGIN = rect.Height() * APP_LINE_MARGIN_BOTTOM;
-
-    // Define the start and end coordintes for rendering the glidepath
-    CPoint glidePathTop{
-        leftToRight ? rect.left + CALC_SIDE_MARGIN : rect.right - CALC_SIDE_MARGIN,
-        rect.top + CALC_TOP_MARGIN
-    };
-    CPoint glidePathBottom{
-        leftToRight ? rect.right - CALC_SIDE_MARGIN : rect.left + CALC_SIDE_MARGIN,
-        rect.bottom - CALC_BOTTOM_MARGIN
-    };
-
     // Draw glideslope line
     CPen* pOldPen = dc.SelectObject(&glideSlopePen);
     dc.MoveTo(glidePathTop);
     dc.LineTo(glidePathBottom);
     dc.SelectObject(pOldPen);
-
-    double pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
-    double pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / float(approachLength); // PS: negative when direction is left->right
 
     // Draw localizer distance dots
     CBrush* pOldBrush = dc.SelectObject(&localizerBrush);
@@ -148,33 +131,11 @@ void ParWindow::DrawContent(CDC& dc)
             const ParTargetPosition& position = *it;
             bool isNewestPosition = (it + 1 == end);  // Check if the iterator is the last element
 
-            double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
-            double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
-            double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
-
-            if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetLeft) {
-                // Too far left
+            CPoint ptTopView, ptSideView;
+            if (!CalculateTargetCoordinates(position, ptTopView, ptSideView)) {
+                // Target is outside the visible area
                 continue;
             }
-            if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetRight) {
-                // Too far right
-                continue;
-            }
-            if (projectedDistanceFromThreshold < 0) {
-                // Wrong side of the threshold
-                continue;
-            }
-            if (it->heightAboveThreshold > approachHeightFt) {
-                // Too high
-                continue;
-            }
-
-            int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
-            int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
-            int yPositionCenterline = glidePathBottom.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
-
-            CPoint ptSideView(xPosition, yPositionSlope);
-            CPoint ptTopView(xPosition, yPositionCenterline);
 
             int crossRadius = isNewestPosition ? TARGET_RADIUS : HISTORY_TRAIL_RADIUS;
 
@@ -197,9 +158,20 @@ void ParWindow::DrawContent(CDC& dc)
             dc.MoveTo(CPoint(ptTopView.x - crossRadius, ptTopView.y));
             dc.LineTo(CPoint(ptTopView.x + crossRadius + 1, ptTopView.y));
 
+            // Draw the main target
             if (isNewestPosition) {
                 dc.SelectStockObject(NULL_BRUSH);
                 dc.Ellipse(ptTopView.x - crossRadius, ptTopView.y - crossRadius, ptTopView.x + crossRadius + 1, ptTopView.y + crossRadius + 1);
+
+                // Check if callsign is in the vector of clicked targets
+                bool isClicked = this->clickedTargets.find(radarTarget.callsign) != this->clickedTargets.end();
+
+                if (this->showTagsByDefault) {
+                    if (isClicked) continue;
+                }
+                else {
+                    if (!isClicked) continue;
+                }
 
                 dc.MoveTo(ptTopView);
                 dc.LineTo(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET);
@@ -208,18 +180,20 @@ void ParWindow::DrawContent(CDC& dc)
                 dc.SetTextColor(targetLabelColor);
                 dc.SetBkMode(TRANSPARENT);
 
+
                 CString targetLabel;
-                targetLabel.Format(_T("%s\n%s %c"),
-                    radarTarget.callsign.c_str(),
-                    radarTarget.icaoType.c_str(),
-                    radarTarget.wtcCategory);
+                if (this->tagMode == ParTagMode::Squawk) {
+                    targetLabel.Format(_T("%s"), radarTarget.squawk.c_str());
+                }
+                else if (this->tagMode == ParTagMode::Callsign) {
+                    targetLabel.Format(_T("%s"), radarTarget.callsign.c_str());
+                }
 
-                CRect textRect(ptTopView.x + LABEL_OFFSET,
-                    ptTopView.y + LABEL_OFFSET,
-                    ptTopView.x + LABEL_OFFSET + 200,
-                    ptTopView.y + LABEL_OFFSET + 100);
-
-                dc.DrawText(targetLabel, &textRect, DT_LEFT | DT_TOP);
+                // Draw the label
+                CSize textSize = dc.GetTextExtent(targetLabel);
+                CPoint labelPosition(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET);
+                CRect labelRect(labelPosition.x, labelPosition.y, labelPosition.x + textSize.cx, labelPosition.y + textSize.cy * 2);
+                dc.DrawText(targetLabel, labelRect, DT_LEFT);
             }
         }
     }
@@ -266,6 +240,7 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
     // Recalculate gradient or redraw on resize
     if (nType != SIZE_MINIMIZED)  // Ignore if window is minimized
     {
+        UpdateDimentions();
         Invalidate(); // Mark the entire client area for repaint
     }
 
@@ -380,6 +355,8 @@ BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
         this->approachLength += 1;
     }
 
+    UpdateDimentions();
+
     CRect updateRect = GetClientRectBelowTitleBar();
     InvalidateRect(updateRect);
 
@@ -404,4 +381,87 @@ void ParWindow::OnTimer(UINT_PTR nIDEvent)
     }
 
     CWnd::OnTimer(nIDEvent);
+}
+
+void ParWindow::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets) {
+        auto newestPosition = radarTarget.positionHistory.size() > 0 ? &radarTarget.positionHistory.front() : nullptr;
+
+        if (newestPosition) {
+            const ParTargetPosition& position = *newestPosition;
+
+            CPoint ptTopView, ptSideView;
+            if (!CalculateTargetCoordinates(position, ptTopView, ptSideView)) {
+                // Target is outside the visible area
+                continue;
+            }
+
+            CRect targetRect(ptTopView.x - TARGET_RADIUS, ptTopView.y - TARGET_RADIUS, ptTopView.x + TARGET_RADIUS, ptTopView.y + TARGET_RADIUS);
+
+            if (targetRect.PtInRect(point))
+            {
+                bool isAlreadyClicked = this->clickedTargets.find(radarTarget.callsign) != this->clickedTargets.end();
+
+                if (isAlreadyClicked) {
+                    this->clickedTargets.erase(radarTarget.callsign);
+                }
+                else {
+                    this->clickedTargets.insert(radarTarget.callsign);
+                }
+                CRect updateRect = GetClientRectBelowTitleBar();
+                InvalidateRect(updateRect);
+                break;
+            }
+        }
+    }
+
+    CWnd::OnLButtonDown(nFlags, point);
+}
+
+bool ParWindow::CalculateTargetCoordinates(const ParTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
+{
+    double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
+    double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
+    double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
+    if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetLeft) {
+        // Too far left
+        return false;
+    }
+    if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetRight) {
+        // Too far right
+        return false;
+    }
+    if (projectedDistanceFromThreshold < 0) {
+        // Wrong side of the threshold
+        return false;
+    }
+    if (position.heightAboveThreshold > approachHeightFt) {
+        // Too high
+        return false;
+    }
+    int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
+    int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
+    int yPositionCenterline = glidePathBottom.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
+    ptSideView = CPoint(xPosition, yPositionSlope);
+    ptTopView = CPoint(xPosition, yPositionCenterline);
+    return true;
+}
+
+void ParWindow::UpdateDimentions()
+{
+    CRect rect = GetClientRectBelowTitleBar();
+
+    const int CALC_SIDE_MARGIN = rect.Width() * APP_LINE_MARGIN_SIDES;
+    const int CALC_TOP_MARGIN = rect.Height() * APP_LINE_MARGIN_TOP;
+    const int CALC_BOTTOM_MARGIN = rect.Height() * APP_LINE_MARGIN_BOTTOM;
+
+    // Define the start and end coordintes for rendering the glidepath
+    this->glidePathTop = CPoint(leftToRight ? rect.left + CALC_SIDE_MARGIN : rect.right - CALC_SIDE_MARGIN, rect.top + CALC_TOP_MARGIN);
+    this->glidePathBottom = CPoint(leftToRight ? rect.right - CALC_SIDE_MARGIN : rect.left + CALC_SIDE_MARGIN, rect.bottom - CALC_BOTTOM_MARGIN);
+
+    this->approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
+
+    this->pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
+    this->pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / float(approachLength); // PS: negative when direction is left->right
 }

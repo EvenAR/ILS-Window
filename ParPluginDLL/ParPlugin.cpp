@@ -135,6 +135,7 @@ void ParPlugin::OnTimer(int seconds)
 
             parData.radarTargets.push_back({
                 rt.GetCallsign(),
+                rt.GetPosition().GetSquawk(),
                 aircraftIcaoType,
                 aircraftWtc,
                 positionHistory
@@ -288,6 +289,34 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         return 0; // Default value when key is not found or is not an unsigned integer
     };
 
+    auto readUIntWithDefault = [&jsonData, this](const std::string& key, unsigned int defaultValue) -> unsigned int {
+        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
+            return jsonData["styling"][key].get<unsigned int>();
+        }
+        return defaultValue;
+    };
+
+    auto readStringWithDefault = [&jsonData, this](const std::string& key, const std::string& defaultValue) -> std::string {
+        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
+            return jsonData["styling"][key].get<std::string>();
+        }
+        return defaultValue;
+    };
+
+    auto stringToTagMode = [](const std::string& value) -> ParTagMode {
+        if (value == "squawk") {
+            return ParTagMode::Squawk;
+        }
+        return ParTagMode::Callsign;
+    };
+
+    auto readBoolWithDefault = [&jsonData, this](const std::string& key, bool defaultValue) -> bool {
+        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
+            return jsonData["styling"][key].get<bool>();
+        }
+        return defaultValue;
+    };
+
     return ParStyling{
         readColor("windowFrameColor"),
         readColor("windowFrameTextColor"),
@@ -299,7 +328,9 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         readColor("historyTrailColor"),
         readColor("targetLabelColor"),
         readColor("rangeStatusTextColor"),
-        readUnsignedInt("fontSize")
+        readUIntWithDefault("fontSize", 12),
+        readBoolWithDefault("showTagByDefault", true),
+        stringToTagMode(readStringWithDefault("defaultTagMode", "callsign"))
     };
 }
 
