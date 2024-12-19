@@ -4,31 +4,31 @@
 #include <vector>
 #include <memory>
 
-class ParWindow;
+class IWWindow;
 
 struct RGB {
     int r, g, b;
 };
 
-struct ParTargetPosition {
+struct IWTargetPosition {
     int heightAboveThreshold;
     double distanceToThreshold;
     double directionToThreshold;
 };
 
-struct ParRadarTarget {
+struct IWRadarTarget {
     std::string callsign;
     std::string squawk;
     std::string icaoType;
     char wtcCategory;
-    std::vector<ParTargetPosition> positionHistory;
+    std::vector<IWTargetPosition> positionHistory;
 };
 
-struct ParData {
-    std::vector<ParRadarTarget> radarTargets;
+struct IWLiveData {
+    std::vector<IWRadarTarget> radarTargets;
 };
 
-struct ParApproachDefinition {
+struct IWApproachDefinition {
     std::string title;
     std::string airport;
     std::string runway;
@@ -40,15 +40,15 @@ struct ParApproachDefinition {
     int defaultRange;
     float maxOffsetLeft;
     float maxOffsetRight;
-    ParWindow* windowReference = nullptr;
+    IWWindow* windowReference = nullptr;
 };
 
-enum ParTagMode {
+enum IWTagMode {
     Squawk,
     Callsign
 };
 
-struct ParStyling {
+struct IWStyling {
     RGB windowFrameColor;
     RGB windowFrameTextColor;
     RGB windowOuterFrameColor;
@@ -61,9 +61,9 @@ struct ParStyling {
     RGB rangeStatusTextColor;
     unsigned int fontSize;
     bool showTagByDefault;
-    ParTagMode defaultTagMode;
+    IWTagMode defaultTagMode;
 };
 
-struct ParBehaviourSettings {
+struct IWBehaviourSettings {
     bool openWindowsBasedOnActiveRunways;
 };

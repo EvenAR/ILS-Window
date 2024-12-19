@@ -1,9 +1,9 @@
-// ParPluginDLL.cpp : Defines the initialization routines for the DLL.
+// IWPluginDLL.cpp : Defines the initialization routines for the DLL.
 //
 
 #include "pch.h"
 #include "framework.h"
-#include "ParPluginDLL.h"
+#include "IWPluginDLL.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,13 +36,13 @@
 
 // ParApp
 
-BEGIN_MESSAGE_MAP(ParPluginDLL, CWinApp)
+BEGIN_MESSAGE_MAP(IWPluginDLL, CWinApp)
 END_MESSAGE_MAP()
 
 
 // ParApp construction
 
-ParPluginDLL::ParPluginDLL()
+IWPluginDLL::IWPluginDLL()
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -51,12 +51,12 @@ ParPluginDLL::ParPluginDLL()
 
 // The one and only ParApp object
 
-ParPluginDLL theApp;
+IWPluginDLL theApp;
 
 
 // ParApp initialization
 
-BOOL ParPluginDLL::InitInstance()
+BOOL IWPluginDLL::InitInstance()
 {
 	CWinApp::InitInstance();
 
@@ -64,10 +64,10 @@ BOOL ParPluginDLL::InitInstance()
 }
 
 
-ParPlugin* pMyPlugIn;
+IWPlugin* pMyPlugIn;
 
 void __declspec (dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance) {     // allocate 
-	*ppPlugInInstance = pMyPlugIn = new ParPlugin;
+	*ppPlugInInstance = pMyPlugIn = new IWPlugin;
 
 }
 

@@ -1,18 +1,18 @@
 #include "pch.h"
-#include "ILSWindowResizeButton.h"
+#include "IWResizeBtn.h"
 
-BEGIN_MESSAGE_MAP(ILSWindowResizeButton, CButton)
+BEGIN_MESSAGE_MAP(IWResizeBtn, CButton)
     ON_WM_LBUTTONDOWN()
     ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
-BOOL ILSWindowResizeButton::OnEraseBkgnd(CDC* pDC)
+BOOL IWResizeBtn::OnEraseBkgnd(CDC* pDC)
 {
     // Do nothing to keep the background transparent
     return TRUE;
 }
 
-void ILSWindowResizeButton::DrawSymbol(CDC* pDC, CRect rect) {
+void IWResizeBtn::DrawSymbol(CDC* pDC, CRect rect) {
     // Create a 1px black pen
     CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
     CPen* oldPen = pDC->SelectObject(&pen);
@@ -40,7 +40,7 @@ void ILSWindowResizeButton::DrawSymbol(CDC* pDC, CRect rect) {
 }
 
 
-void ILSWindowResizeButton::OnLButtonDown(UINT nFlags, CPoint point)
+void IWResizeBtn::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CPoint screenPoint = point;
     ClientToScreen(&screenPoint);

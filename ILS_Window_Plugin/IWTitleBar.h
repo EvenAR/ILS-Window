@@ -1,47 +1,47 @@
 #pragma once
 #include <afxwin.h>
 #include <string>
-#include "ILSWindowCloseButton.h"
-#include "ILSWindowMenuButton.h"
-#include "ILSWindowResizeButton.h"
+#include "IWCloseBtn.h"
+#include "IWMenuBtn.h"
+#include "IWResizeBtn.h"
 
 #define IDC_CLOSE_BUTTON 1001
 #define IDC_MENU_BUTTON 1002
 #define IDC_RESIZE_BUTTON 1003
 
-class IParWindowTitleBarEventListener {
+class IWTitleBarEventListener {
 public:
     virtual void OnResizeStart() = 0;
     virtual void OnCloseButtonClicked() = 0;
 };
 
-class ParWindowTitleBar : public CStatic {
-    DECLARE_DYNAMIC(ParWindowTitleBar)
+class IWTitleBar : public CStatic {
+    DECLARE_DYNAMIC(IWTitleBar)
 
     public:
-        ParWindowTitleBar(
+        IWTitleBar(
             const std::string& title, 
             COLORREF backgroundColor,
             COLORREF textColor, 
             COLORREF outerFrameColor, 
-            IParWindowTitleBarEventListener* listener
+            IWTitleBarEventListener* listener
         );
-        virtual ~ParWindowTitleBar() {}
+        virtual ~IWTitleBar() {}
 
         // Initialize the top bar
         BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
 
     private: 
-        ILSWindowCloseButton closeButton;
-        ILSWindowMenuButton menuButton;
-        ILSWindowResizeButton resizeButton;
+        IWCloseBtn closeButton;
+        IWMenuBtn menuButton;
+        IWResizeBtn resizeButton;
         CFont euroScopeFont;
 
         COLORREF backgroundColor;
         COLORREF textColor;
         CPen outerFramePen;
         std::string text;
-        IParWindowTitleBarEventListener* eventListener;
+        IWTitleBarEventListener* eventListener;
 
         afx_msg void OnPaint();
         afx_msg void OnCloseButtonClicked();

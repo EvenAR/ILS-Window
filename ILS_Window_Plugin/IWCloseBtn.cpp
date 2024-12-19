@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "ILSWindowCloseButton.h"
+#include "IWCloseBtn.h"
 
-void ILSWindowCloseButton::DrawSymbol(CDC* pDC, CRect rect)
+void IWCloseBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
     // Draw a black circle in the center
     CBrush brush(RGB(0, 0, 0)); // Solid black brush for the circle

@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "ILSWindowMenuButton.h"
+#include "IWMenuBtn.h"
 
-void ILSWindowMenuButton::DrawSymbol(CDC* pDC, CRect rect)
+void IWMenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
     // Calculate the center of the rectangle
     CPoint center = rect.CenterPoint();

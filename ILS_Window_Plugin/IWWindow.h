@@ -1,7 +1,7 @@
 #pragma once
 #include <afxwin.h>
-#include "ParDataTypes.h"
-#include "ParWindowTitleBar.h"
+#include "IWDataTypes.h"
+#include "IWTitleBar.h"
 #include <set>
 
 #define IDC_CLOSE_BUTTON 1001
@@ -19,14 +19,14 @@
 
 #define TITLE_BAR_HEIGHT 27
 
-class ParWindow;
+class IWWindow;
 
-class IParWindowEventListener {
+class IIWWndEventListener {
 public:
-    virtual void OnWindowClosed(ParWindow* window) = 0;
+    virtual void OnWindowClosed(IWWindow* window) = 0;
 };
 
-class ParWindow : public CWnd, IParWindowTitleBarEventListener {
+class IWWindow : public CWnd, IWTitleBarEventListener {
     protected:
         afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
         afx_msg  void OnPaint();
@@ -49,15 +49,15 @@ class ParWindow : public CWnd, IParWindowTitleBarEventListener {
         DECLARE_MESSAGE_MAP()
 
     public:
-        ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, ParStyling styling);
-        virtual ~ParWindow();
-        void SetListener(IParWindowEventListener* listener);
+        IWWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, IWStyling styling);
+        virtual ~IWWindow();
+        void SetListener(IIWWndEventListener* listener);
 
     private:
-        ParWindowTitleBar titleBar;
-        ParData m_latestParData;
+        IWTitleBar titleBar;
+        IWLiveData m_latestLiveData;
         void DrawDiamond(CPoint pt, int size, CDC& dc);
-        bool CalculateTargetCoordinates(const ParTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
+        bool CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
         void UpdateDimentions();
 
         COLORREF rangeStatusTextColor;
@@ -69,8 +69,8 @@ class ParWindow : public CWnd, IParWindowTitleBarEventListener {
         CPen historyTrailPen;
         CPen windowBorderPen;
         CPen windowOuterBorderPen;
-        IParWindowEventListener* m_listener = nullptr;
-        ParTagMode tagMode;
+        IIWWndEventListener* m_listener = nullptr;
+        IWTagMode tagMode;
         bool showTagsByDefault;
 
         std::set<std::string> clickedTargets;

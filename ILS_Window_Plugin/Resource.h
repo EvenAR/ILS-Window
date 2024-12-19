@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by ParPluginDLL.rc
+// Used by ILS_Window_Plugin.rc
 //
 
 // Next default values for new objects

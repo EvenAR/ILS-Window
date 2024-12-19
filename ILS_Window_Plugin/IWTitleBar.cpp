@@ -1,16 +1,16 @@
 #include "pch.h"
-#include "ParWindowTitleBar.h"
+#include "IWTitleBar.h"
 
-IMPLEMENT_DYNAMIC(ParWindowTitleBar, CStatic)
+IMPLEMENT_DYNAMIC(IWTitleBar, CStatic)
 
-BEGIN_MESSAGE_MAP(ParWindowTitleBar, CStatic)
+BEGIN_MESSAGE_MAP(IWTitleBar, CStatic)
     ON_WM_PAINT()
     ON_WM_SIZE()  // Handle resizing
-    ON_BN_CLICKED(IDC_CLOSE_BUTTON, &ParWindowTitleBar::OnCloseButtonClicked)
+    ON_BN_CLICKED(IDC_CLOSE_BUTTON, &IWTitleBar::OnCloseButtonClicked)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-ParWindowTitleBar::ParWindowTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IParWindowTitleBarEventListener* listener)
+IWTitleBar::IWTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IWTitleBarEventListener* listener)
 {
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
@@ -21,7 +21,7 @@ ParWindowTitleBar::ParWindowTitleBar(const std::string& title, COLORREF backgrou
     this->eventListener = listener;
 }
 
-BOOL ParWindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
+BOOL IWTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
 {
     if (!CWnd::Create(NULL, NULL, WS_CHILD | WS_VISIBLE, rect, pParentWnd, nID))
         return FALSE;
@@ -38,7 +38,7 @@ BOOL ParWindowTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT n
     return TRUE;
 }
 
-void ParWindowTitleBar::OnPaint()
+void IWTitleBar::OnPaint()
 {
     CPaintDC dc(this);  // Device context for painting
     CRect rect;
@@ -67,13 +67,13 @@ void ParWindowTitleBar::OnPaint()
     dc.Rectangle(rect);
 }
 
-void ParWindowTitleBar::OnCloseButtonClicked()
+void IWTitleBar::OnCloseButtonClicked()
 {
     this->eventListener->OnCloseButtonClicked();
 }
 
 
-void ParWindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
+void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CRect resizeButtonRect;
     resizeButton.GetClientRect(&resizeButtonRect);
@@ -95,7 +95,7 @@ void ParWindowTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     CWnd::OnLButtonDown(nFlags, point);
 }
 
-void ParWindowTitleBar::OnSize(UINT nType, int cx, int cy)
+void IWTitleBar::OnSize(UINT nType, int cx, int cy)
 {
     CStatic::OnSize(nType, cx, cy);
 
@@ -107,7 +107,7 @@ void ParWindowTitleBar::OnSize(UINT nType, int cx, int cy)
     }
 }
 
-void ParWindowTitleBar::PositionButtons(const CRect& rect)
+void IWTitleBar::PositionButtons(const CRect& rect)
 {
     const int margin = 6;
     const int btnWidth = 16; // Button width

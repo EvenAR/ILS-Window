@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "ParPlugin.h"
+#include "IWPlugin.h"
 #include <json.hpp>
 #include <fstream>
-#include "ParUtils.h"
+#include "IWUtils.h"
 #include <regex>
 
 using json = nlohmann::json;
 
-ParPlugin::ParPlugin(void) : CPlugIn(
+IWPlugin::IWPlugin(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "ILS Window",
     "1.0.0",
@@ -36,7 +36,7 @@ ParPlugin::ParPlugin(void) : CPlugIn(
     SyncWithActiveRunways();
 }
 
-ParPlugin::~ParPlugin()
+IWPlugin::~IWPlugin()
 {
     for (const auto& window : windows) {
         if (window) {
@@ -45,14 +45,14 @@ ParPlugin::~ParPlugin()
     }
 }
 
-void ParPlugin::OpenNewWindow(ParApproachDefinition* approach)
+void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 {
     if (approach->windowReference) return; // Already an open window for this approach
 
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
-    ParWindow* newWindow = new ParWindow(
+    IWWindow* newWindow = new IWWindow(
         approach->title.c_str(), 
         approach->glideslopeAngle, 
         approach->defaultRange, 
@@ -90,10 +90,10 @@ void ParPlugin::OpenNewWindow(ParApproachDefinition* approach)
 }
 
 
-void ParPlugin::OnTimer(int seconds)
+void IWPlugin::OnTimer(int seconds)
 {
     for (const auto& approach : availableApproaches) {
-        ParData parData;
+        IWLiveData parData;
         if (approach.windowReference == nullptr) continue;
 
         EuroScopePlugIn::CPosition runwayThreshold;
@@ -101,7 +101,7 @@ void ParPlugin::OnTimer(int seconds)
         runwayThreshold.m_Longitude = approach.thresholdLongitude;
 
         for (auto rt = this->RadarTargetSelectFirst(); rt.IsValid(); rt = this->RadarTargetSelectNext(rt)) {
-            std::vector<ParTargetPosition> positionHistory;
+            std::vector<IWTargetPosition> positionHistory;
 
             EuroScopePlugIn::CRadarTargetPositionData previousPosition;
 
@@ -146,13 +146,13 @@ void ParPlugin::OnTimer(int seconds)
     }
 }
 
-void ParPlugin::OnAirportRunwayActivityChanged()
+void IWPlugin::OnAirportRunwayActivityChanged()
 {
     SyncWithActiveRunways();
 }
 
 
-void ParPlugin::SyncWithActiveRunways()
+void IWPlugin::SyncWithActiveRunways()
 {
     if (!behaviourSettings.openWindowsBasedOnActiveRunways) {
         return;
@@ -162,7 +162,7 @@ void ParPlugin::SyncWithActiveRunways()
 
     bool forArrival = true;
 
-    std::vector<ParApproachDefinition*> approachesThatShouldBeOpen;
+    std::vector<IWApproachDefinition*> approachesThatShouldBeOpen;
 
     for (auto airport = this->SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT); airport.IsValid(); airport = this->SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
         if (airport.IsElementActive(!forArrival)) {
@@ -174,7 +174,7 @@ void ParPlugin::SyncWithActiveRunways()
                         if (runway.IsElementActive(!forArrival, runwayDirection) && runwayAirportName == activeAirportIcao) {
                             auto runwayName = trimString(std::string(runway.GetRunwayName(runwayDirection)));
                             auto approach = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
-                                [&runwayAirportName, runwayName](const ParApproachDefinition& approach) {
+                                [&runwayAirportName, runwayName](const IWApproachDefinition& approach) {
                                     return approach.airport == runwayAirportName && approach.runway == runwayName;
                                 });
 
@@ -209,8 +209,8 @@ void ParPlugin::SyncWithActiveRunways()
     }
 }
 
-std::vector<ParApproachDefinition> ParPlugin::ReadApproachDefinitions(const std::string& jsonFilePath) {
-    std::vector<ParApproachDefinition> approaches;
+std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::string& jsonFilePath) {
+    std::vector<IWApproachDefinition> approaches;
 
     // Open the JSON file
     std::ifstream file(jsonFilePath);
@@ -238,7 +238,7 @@ std::vector<ParApproachDefinition> ParPlugin::ReadApproachDefinitions(const std:
     // Iterate over the approaches
     for (const auto& approachJson : jsonData["approaches"]) {
         try {
-            ParApproachDefinition approach;
+            IWApproachDefinition approach;
 
             // Parse individual fields
             approach.title = approachJson.at("title").get<std::string>();
@@ -265,7 +265,7 @@ std::vector<ParApproachDefinition> ParPlugin::ReadApproachDefinitions(const std:
     return approaches;
 }
 
-ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
+IWStyling IWPlugin::ReadStyling(const std::string& jsonFilePath) {
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
         this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
@@ -303,11 +303,11 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         return defaultValue;
     };
 
-    auto stringToTagMode = [](const std::string& value) -> ParTagMode {
+    auto stringToTagMode = [](const std::string& value) -> IWTagMode {
         if (value == "squawk") {
-            return ParTagMode::Squawk;
+            return IWTagMode::Squawk;
         }
-        return ParTagMode::Callsign;
+        return IWTagMode::Callsign;
     };
 
     auto readBoolWithDefault = [&jsonData, this](const std::string& key, bool defaultValue) -> bool {
@@ -317,7 +317,7 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
         return defaultValue;
     };
 
-    return ParStyling{
+    return IWStyling{
         readColor("windowFrameColor"),
         readColor("windowFrameTextColor"),
         readColor("windowOuterFrameColor"),
@@ -334,7 +334,7 @@ ParStyling ParPlugin::ReadStyling(const std::string& jsonFilePath) {
     };
 }
 
-ParBehaviourSettings ParPlugin::ReadBehaviourSettings(const std::string& jsonFilePath) {
+IWBehaviourSettings IWPlugin::ReadBehaviourSettings(const std::string& jsonFilePath) {
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
         this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
@@ -345,19 +345,19 @@ ParBehaviourSettings ParPlugin::ReadBehaviourSettings(const std::string& jsonFil
 
     nlohmann::json jsonObject = jsonData["behaviour"];
 
-    return ParBehaviourSettings{
+    return IWBehaviourSettings{
         jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>()
     };
 }
 
-std::string ParPlugin::GetPluginDirectory() {
+std::string IWPlugin::GetPluginDirectory() {
     char modulePath[MAX_PATH];
     GetModuleFileNameA((HINSTANCE)&__ImageBase, modulePath, sizeof(modulePath));
     std::string pluginDirectory = std::string(modulePath).substr(0, std::string(modulePath).find_last_of("\\/"));
     return pluginDirectory;
 }
 
-void ParPlugin::OnWindowClosed(ParWindow* window)
+void IWPlugin::OnWindowClosed(IWWindow* window)
 {
     auto it = std::find(windows.begin(), windows.end(), window);
     if (it != windows.end()) {
@@ -372,7 +372,7 @@ void ParPlugin::OnWindowClosed(ParWindow* window)
     }
 }
 
-bool ParPlugin::OnCompileCommand(const char* sCommandLine)
+bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 {
     const std::string command(sCommandLine);
     const std::string prefix = ".par ";
@@ -391,7 +391,7 @@ bool ParPlugin::OnCompileCommand(const char* sCommandLine)
 
     // Find the approach by title
     auto it = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
-        [&argument](const ParApproachDefinition& approach) {
+        [&argument](const IWApproachDefinition& approach) {
             return approach.title == argument;
         });
 

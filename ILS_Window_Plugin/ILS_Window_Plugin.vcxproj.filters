@@ -15,39 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ParPluginDLL.cpp">
+    <ClCompile Include="IWPluginDLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ParWindowTitleBar.cpp">
+    <ClCompile Include="IWTitleBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ParPlugin.cpp">
+    <ClCompile Include="IWPlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ParWindow.cpp">
+    <ClCompile Include="IWWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ILSWindowTitleBarButton.cpp">
+    <ClCompile Include="IWTitleBarBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ILSWindowCloseButton.cpp">
+    <ClCompile Include="IWCloseBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ILSWindowMenuButton.cpp">
+    <ClCompile Include="IWMenuBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ILSWindowResizeButton.cpp">
+    <ClCompile Include="IWResizeBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ParPluginDLL.def">
+    <None Include="ILS_Window_Plugin.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="res\ParPluginDLL.rc2">
+    <None Include="res\ILS_Window_Plugin.rc2">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -64,22 +64,22 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParPluginDLL.h">
+    <ClInclude Include="IWPluginDLL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParWindow.h">
+    <ClInclude Include="IWWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParWindowTitleBar.h">
+    <ClInclude Include="IWTitleBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParUtils.h">
+    <ClInclude Include="IWUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParDataTypes.h">
+    <ClInclude Include="IWDataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParPlugin.h">
+    <ClInclude Include="IWPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\EuroScopePlugIn.h">
@@ -88,21 +88,21 @@
     <ClInclude Include="..\lib\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ILSWindowTitleBarButton.h">
+    <ClInclude Include="IWTitleBarBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ILSWindowCloseButton.h">
+    <ClInclude Include="IWCloseBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ILSWindowMenuButton.h">
+    <ClInclude Include="IWMenuBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ILSWindowResizeButton.h">
+    <ClInclude Include="IWResizeBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="ParPluginDLL.rc">
+    <ResourceCompile Include="ILS_Window_Plugin.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

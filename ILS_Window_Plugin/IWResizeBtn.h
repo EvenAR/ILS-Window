@@ -1,8 +1,7 @@
 #pragma once
-#include "ILSWindowTitleBarButton.h"
+#include "IWTitleBarBtn.h"
 
-class ILSWindowResizeButton :
-    public ILSWindowTitleBarButton
+class IWResizeBtn : public IWTitleBarBtn
 {
     void DrawSymbol(CDC* pDC, CRect rect) override;
 

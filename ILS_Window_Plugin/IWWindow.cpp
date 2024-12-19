@@ -1,14 +1,14 @@
 #include "pch.h"
-#include "ParWindow.h"
+#include "IWWindow.h"
 
-BEGIN_MESSAGE_MAP(ParWindow, CWnd)
+BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_PAINT()
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_LBUTTONDOWN()   // Add the message map entry for WM_LBUTTONDOWN
     ON_WM_LBUTTONUP()     // Add the message map entry for WM_LBUTTONUP
     ON_WM_CTLCOLOR() // Handle custom control colors
-    ON_MESSAGE(WM_UPDATE_DATA, &ParWindow::OnUpdateData)
+    ON_MESSAGE(WM_UPDATE_DATA, &IWWindow::OnUpdateData)
     ON_WM_DESTROY()
     ON_WM_ERASEBKGND()
     ON_WM_NCACTIVATE()
@@ -17,7 +17,7 @@ BEGIN_MESSAGE_MAP(ParWindow, CWnd)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, ParStyling styling) : titleBar(
+IWWindow::IWWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, IWStyling styling) : titleBar(
     title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
     RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
@@ -47,12 +47,12 @@ ParWindow::ParWindow(const char* title, double appSlope, double appLength, bool 
     this->showTagsByDefault = styling.showTagByDefault;
 }
 
-ParWindow::~ParWindow()
+IWWindow::~IWWindow()
 {
     this->titleBar.DestroyWindow();
 }
 
-int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int IWWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
@@ -68,7 +68,7 @@ int ParWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 
-void ParWindow::OnPaint()
+void IWWindow::OnPaint()
 {
     CPaintDC dc(this); // Device context for painting
 
@@ -95,7 +95,7 @@ void ParWindow::OnPaint()
     memDC.SelectObject(pOldBitmap);
 }
 
-void ParWindow::DrawContent(CDC& dc)
+void IWWindow::DrawContent(CDC& dc)
 {
     CRect rect = GetClientRectBelowTitleBar();
     CFont* oldFont = dc.SelectObject(&euroScopeFont);
@@ -121,14 +121,14 @@ void ParWindow::DrawContent(CDC& dc)
     dc.SelectObject(pOldBrush);
 
     // Draw the radar targets
-    for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets)
+    for (const IWRadarTarget& radarTarget : m_latestLiveData.radarTargets)
     {
         auto it = radarTarget.positionHistory.rbegin();
         auto end = radarTarget.positionHistory.rend();
 
         // Draw the history trail in reverese so the newest dots appear on top
         for (auto it = radarTarget.positionHistory.rbegin(); it != radarTarget.positionHistory.rend(); ++it) {
-            const ParTargetPosition& position = *it;
+            const IWTargetPosition& position = *it;
             bool isNewestPosition = (it + 1 == end);  // Check if the iterator is the last element
 
             CPoint ptTopView, ptSideView;
@@ -182,10 +182,10 @@ void ParWindow::DrawContent(CDC& dc)
 
 
                 CString targetLabel;
-                if (this->tagMode == ParTagMode::Squawk) {
+                if (this->tagMode == IWTagMode::Squawk) {
                     targetLabel.Format(_T("%s"), radarTarget.squawk.c_str());
                 }
-                else if (this->tagMode == ParTagMode::Callsign) {
+                else if (this->tagMode == IWTagMode::Callsign) {
                     targetLabel.Format(_T("%s"), radarTarget.callsign.c_str());
                 }
 
@@ -233,7 +233,7 @@ void ParWindow::DrawContent(CDC& dc)
     dc.SelectObject(oldFont);
 }
 
-void ParWindow::OnSize(UINT nType, int cx, int cy)
+void IWWindow::OnSize(UINT nType, int cx, int cy)
 {
     CWnd::OnSize(nType, cx, cy);
 
@@ -251,13 +251,13 @@ void ParWindow::OnSize(UINT nType, int cx, int cy)
     }
 }
 
-BOOL ParWindow::OnNcActivate(BOOL bActive)
+BOOL IWWindow::OnNcActivate(BOOL bActive)
 {
     // Prevent Windows from redrawing the NC area
     return TRUE;
 }
 
-BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
+BOOL IWWindow::PreCreateWindow(CREATESTRUCT& cs)
 {
     if (!CWnd::PreCreateWindow(cs))
         return FALSE;
@@ -265,17 +265,17 @@ BOOL ParWindow::PreCreateWindow(CREATESTRUCT& cs)
     return TRUE;
 }
 
-BOOL ParWindow::OnEraseBkgnd(CDC* pDC)
+BOOL IWWindow::OnEraseBkgnd(CDC* pDC)
 {
     // Do nothing here to prevent background clearing
     return TRUE;
 }
 
-LRESULT ParWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
+LRESULT IWWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
 {
-    ParData* pData = reinterpret_cast<ParData*>(wParam);
+    IWLiveData* pData = reinterpret_cast<IWLiveData*>(wParam);
     if (pData) {
-        m_latestParData = *pData;
+        m_latestLiveData = *pData;
     }
 
     // Trigger a repaint
@@ -286,7 +286,7 @@ LRESULT ParWindow::OnUpdateData(WPARAM wParam, LPARAM lParam)
 }
 
 
-CRect ParWindow::GetClientRectBelowTitleBar()
+CRect IWWindow::GetClientRectBelowTitleBar()
 {
     CRect rect;
     GetClientRect(&rect);  // Get full client area
@@ -301,7 +301,7 @@ CRect ParWindow::GetClientRectBelowTitleBar()
     return rect;
 }
 
-void ParWindow::DrawDiamond(CPoint pt, int radius, CDC& dc)
+void IWWindow::DrawDiamond(CPoint pt, int radius, CDC& dc)
 {
     CPoint pts[5];
     pts[0] = CPoint(pt.x, pt.y - radius);
@@ -314,17 +314,17 @@ void ParWindow::DrawDiamond(CPoint pt, int radius, CDC& dc)
     dc.Polygon(pts, 5);
 }
 
-void ParWindow::OnResizeStart()
+void IWWindow::OnResizeStart()
 {
     SendMessage(WM_NCLBUTTONDOWN, HTTOPRIGHT, NULL); // Resize using the top right corner
 }
 
-void ParWindow::OnCloseButtonClicked()
+void IWWindow::OnCloseButtonClicked()
 {
     this->DestroyWindow();
 }
 
-void ParWindow::OnDestroy()
+void IWWindow::OnDestroy()
 {
     if (m_listener) {
         m_listener->OnWindowClosed(this);
@@ -333,18 +333,18 @@ void ParWindow::OnDestroy()
     CWnd::OnDestroy();
 }
 
-void ParWindow::SetListener(IParWindowEventListener* listener)
+void IWWindow::SetListener(IIWWndEventListener* listener)
 {
     m_listener = listener;
 }
 
-void ParWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+void IWWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
     lpMMI->ptMinTrackSize.x = 150; // Minimum width in pixels
     lpMMI->ptMinTrackSize.y = 100; // Minimum height in pixels
 }
 
-BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+BOOL IWWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
     if (zDelta > 0 && this->approachLength > 5)
     {
@@ -367,7 +367,7 @@ BOOL ParWindow::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     return TRUE;
 }
 
-void ParWindow::OnTimer(UINT_PTR nIDEvent)
+void IWWindow::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == zoomMessageTimerId)
     {
@@ -383,13 +383,13 @@ void ParWindow::OnTimer(UINT_PTR nIDEvent)
     CWnd::OnTimer(nIDEvent);
 }
 
-void ParWindow::OnLButtonDown(UINT nFlags, CPoint point)
+void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    for (const ParRadarTarget& radarTarget : m_latestParData.radarTargets) {
+    for (const IWRadarTarget& radarTarget : m_latestLiveData.radarTargets) {
         auto newestPosition = radarTarget.positionHistory.size() > 0 ? &radarTarget.positionHistory.front() : nullptr;
 
         if (newestPosition) {
-            const ParTargetPosition& position = *newestPosition;
+            const IWTargetPosition& position = *newestPosition;
 
             CPoint ptTopView, ptSideView;
             if (!CalculateTargetCoordinates(position, ptTopView, ptSideView)) {
@@ -419,7 +419,7 @@ void ParWindow::OnLButtonDown(UINT nFlags, CPoint point)
     CWnd::OnLButtonDown(nFlags, point);
 }
 
-bool ParWindow::CalculateTargetCoordinates(const ParTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
+bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
 {
     double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
     double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
@@ -448,7 +448,7 @@ bool ParWindow::CalculateTargetCoordinates(const ParTargetPosition& position, CP
     return true;
 }
 
-void ParWindow::UpdateDimentions()
+void IWWindow::UpdateDimentions()
 {
     CRect rect = GetClientRectBelowTitleBar();
 

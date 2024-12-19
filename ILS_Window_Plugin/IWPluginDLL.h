@@ -5,12 +5,12 @@
 #endif
 
 #include "resource.h"		// main symbols
-#include "ParPlugIn.h"
+#include "IWPlugin.h"
 
-class ParPluginDLL : public CWinApp
+class IWPluginDLL : public CWinApp
 {
 public:
-	ParPluginDLL();
+	IWPluginDLL();
 
 // Overrides
 public:

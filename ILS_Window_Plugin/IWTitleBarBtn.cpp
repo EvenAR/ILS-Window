@@ -1,17 +1,17 @@
 #include "pch.h"
-#include "ILSWindowTitleBarButton.h"
+#include "IWTitleBarBtn.h"
 
-BEGIN_MESSAGE_MAP(ILSWindowTitleBarButton, CButton)
+BEGIN_MESSAGE_MAP(IWTitleBarBtn, CButton)
     ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
-BOOL ILSWindowTitleBarButton::OnEraseBkgnd(CDC* pDC) {
+BOOL IWTitleBarBtn::OnEraseBkgnd(CDC* pDC) {
     // Do nothing to keep the background transparent
     return TRUE;
 }
 
-void ILSWindowTitleBarButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
+void IWTitleBarBtn::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
     CDC* pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
 
     // Get the button's rectangle
