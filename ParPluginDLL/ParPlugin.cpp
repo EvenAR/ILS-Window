@@ -17,7 +17,7 @@ ParPlugin::ParPlugin(void) : CPlugIn(
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
     
     // Read configuration file
-    std::string jsonFilePath = GetPluginDirectory() + "//PAR.json";
+    std::string jsonFilePath = GetPluginDirectory() + "//ILS-window.json";
     availableApproaches = ReadApproachDefinitions(jsonFilePath);
     windowStyling = ReadStyling(jsonFilePath);
     behaviourSettings = ReadBehaviourSettings(jsonFilePath);
