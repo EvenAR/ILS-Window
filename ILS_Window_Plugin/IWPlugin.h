@@ -5,6 +5,8 @@
 #include "IWWindow.h"
 #include "IWDataTypes.h"
 
+#define WINDOW_CLASS_NAME _T("IWWindow")
+
 class IWPlugin : public EuroScopePlugIn::CPlugIn, IIWWndEventListener {
 private:
     std::vector<IWWindow*> windows;

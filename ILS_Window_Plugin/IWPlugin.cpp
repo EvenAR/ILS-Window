@@ -28,7 +28,7 @@ IWPlugin::IWPlugin(void) : CPlugIn(
     wndClass.hInstance = AfxGetInstanceHandle();
     wndClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
     wndClass.hbrBackground = (HBRUSH)::GetStockObject(WHITE_BRUSH);
-    wndClass.lpszClassName = _T("ParWindow");
+    wndClass.lpszClassName = WINDOW_CLASS_NAME;
 
     if (!AfxRegisterClass(&wndClass))
         return;
@@ -56,7 +56,7 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 
     auto hwndPopup = newWindow->CreateEx(
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
-        _T("ParWindow"),
+        WINDOW_CLASS_NAME,
         _T(approach->title.c_str()),
         WS_POPUP,
         int(windows.size()) * 50,       // x-position
