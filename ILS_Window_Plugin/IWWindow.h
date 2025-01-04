@@ -29,7 +29,7 @@ class IWWindow;
 class IIWWndEventListener {
 public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
-    virtual void OnNewWindowSelected() = 0;
+    virtual void OnWindowMenuOpenNew() = 0;
 };
 
 class IWWindow : public CWnd, IWTitleBarEventListener {
@@ -48,7 +48,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 
         BOOL OnMenuOptionSelected(UINT nID);
-        void OnNewWindowSelected(UINT nID);
+        void OnProcedureSelected(UINT nID);
 
         void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();

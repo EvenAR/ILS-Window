@@ -28,7 +28,7 @@ private:
 
     // Events from a window
     void OnWindowClosed(IWWindow* window) override;
-    void OnNewWindowSelected() override;
+    void OnWindowMenuOpenNew() override;
 public:
     IWPlugin();
     ~IWPlugin();

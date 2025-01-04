@@ -49,8 +49,16 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-    IWWindow* newWindow = new IWWindow(*approach, windowStyling);
+    // Decide window size. Use the same size as the newest window if there is one.
+    CSize windowSize = CSize(300, 200);
+    IWWindow* newestWindow = windows.size() > 0 ? windows.back() : nullptr;
+    if (newestWindow) {
+        CRect rect;
+        newestWindow->GetWindowRect(&rect);
+        windowSize = rect.Size();
+    }
 
+    IWWindow* newWindow = new IWWindow(*approach, windowStyling);
     auto hwndPopup = newWindow->CreateEx(
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
         WINDOW_CLASS_NAME,
@@ -58,8 +66,8 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
         WS_POPUP,
         int(windows.size()) * 50,       // x-position
         int(windows.size()) * 50 + 100, // y-position
-        300,                            // Default width
-        200,                            // Default height
+        windowSize.cx,
+        windowSize.cy,
         nullptr,
         nullptr
     );
@@ -359,7 +367,7 @@ void IWPlugin::OnWindowClosed(IWWindow* window)
     }
 }
 
-void IWPlugin::OnNewWindowSelected()
+void IWPlugin::OnWindowMenuOpenNew()
 {
     this->OpenNewWindow(&availableApproaches[0]);
 }

@@ -25,7 +25,7 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_NEW_WINDOW, &IWWindow::OnMenuOptionSelected)
-    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_START, MENU_ITEM_PROCEDURES_START + 100, &IWWindow::OnNewWindowSelected)
+    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_START, MENU_ITEM_PROCEDURES_START + 100, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
 
 IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling) : titleBar(
@@ -568,10 +568,29 @@ void IWWindow::CreatePopupMenu(CPoint point)
     CMenu menu;
     menu.CreatePopupMenu();
 
-    // Add items to the main menu
+    // Create the submenu with the available approaches
+    CMenu subMenu;
+    subMenu.CreatePopupMenu();
+
+    int idCounter = 0;
+    for (const IWApproachDefinition& approach : availableApproaches)
+    {
+        bool isActive = approach.title == this->selectedApproach.title;
+        int menuItemID = MENU_ITEM_PROCEDURES_START + idCounter++;
+        if (isActive) {
+            subMenu.AppendMenu(MF_STRING | MF_CHECKED, menuItemID, CString(approach.title.c_str()));
+        }
+        else {
+            subMenu.AppendMenu(MF_STRING, menuItemID, CString(approach.title.c_str()));
+        }
+    }
+
+    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenu.m_hMenu, _T("Procedure"));
+
+    // Add static menu items
     menu.AppendMenu(
         MF_STRING | (this->showTagsByDefault ? MF_CHECKED : MF_UNCHECKED),
-        MENU_ITEM_SHOW_LABELS,  
+        MENU_ITEM_SHOW_LABELS,
         _T("Show labels by default")
     );
     menu.AppendMenu(
@@ -582,29 +601,8 @@ void IWWindow::CreatePopupMenu(CPoint point)
     menu.AppendMenu(
         MF_STRING,
         MENU_ITEM_NEW_WINDOW,
-        _T("Create a new window")
+        _T("Open a new window")
     );
-
-    // Create the submenu
-    CMenu subMenu;
-    subMenu.CreatePopupMenu();
-
-    // Add approaches to the submenu
-    int id = 0;
-    for (const IWApproachDefinition& approach : availableApproaches)
-    {
-        bool isActive = approach.title == this->selectedApproach.title;
-        int menuItemID = MENU_ITEM_PROCEDURES_START + id++;
-        if (isActive) {
-            subMenu.AppendMenu(MF_STRING | MF_CHECKED, menuItemID, CString(approach.title.c_str()));
-        }
-        else {
-            subMenu.AppendMenu(MF_STRING, menuItemID, CString(approach.title.c_str()));
-        }
-    }
-
-    // Attach the submenu to the third item
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenu.m_hMenu, _T("Procedure"));
 
     // Display the menu
     menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
@@ -626,13 +624,13 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
     else if (nID == MENU_ITEM_NEW_WINDOW)
     {
         if (m_listener) {
-            m_listener->OnNewWindowSelected();
+            m_listener->OnWindowMenuOpenNew();
         }
     }
     return TRUE;
 }
 
-void IWWindow::OnNewWindowSelected(UINT nID)
+void IWWindow::OnProcedureSelected(UINT nID)
 {
     int index = nID - MENU_ITEM_PROCEDURES_START;
     if (index >= 0 && index < availableApproaches.size())
