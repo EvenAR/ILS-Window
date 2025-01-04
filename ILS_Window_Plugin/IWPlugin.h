@@ -4,6 +4,7 @@
 #include <vector>
 #include "IWWindow.h"
 #include "IWDataTypes.h"
+#include <map>
 
 #define WINDOW_CLASS_NAME _T("IWWindow")
 
@@ -13,13 +14,13 @@ private:
     std::vector<IWApproachDefinition> availableApproaches;
     IWStyling windowStyling;
     IWBehaviourSettings behaviourSettings;
+    std::map<std::string, CRect> savedWindowPositions;
 
     void OpenNewWindow(IWApproachDefinition* approach);
     void SyncWithActiveRunways();
+    void LoadSavedWindowPositions();
 
     bool autoOpenWhenRunwaysChanges = true;
-
-    CPoint nextWindowSpawnPointM{ 50, 50 };
 
     // Euroscope API
     bool OnCompileCommand(const char* sCommandLine) override;

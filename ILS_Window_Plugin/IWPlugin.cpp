@@ -33,6 +33,7 @@ IWPlugin::IWPlugin(void) : CPlugIn(
     if (!AfxRegisterClass(&wndClass))
         return;
 
+    LoadSavedWindowPositions();
     SyncWithActiveRunways();
 }
 
@@ -49,23 +50,34 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-    // Decide window size. Use the same size as the newest window if there is one.
+    CPoint spawningPoint = CPoint(int(windows.size()) * 50, int(windows.size()) * 50 + 100);
     CSize windowSize = CSize(300, 200);
-    IWWindow* newestWindow = windows.size() > 0 ? windows.back() : nullptr;
-    if (newestWindow) {
-        CRect rect;
-        newestWindow->GetWindowRect(&rect);
-        windowSize = rect.Size();
-    }
 
+    // Use the saved position if there is one
+    auto savedPosition = savedWindowPositions.find(approach->title);
+    if (savedPosition != savedWindowPositions.end()) {
+        windowSize = savedPosition->second.Size();
+        spawningPoint = savedPosition->second.TopLeft();
+    }
+    else {
+        // Use the same size as the newest window if there is one.
+        IWWindow* newestWindow = windows.size() > 0 ? windows.back() : nullptr;
+        if (newestWindow) {
+            CRect rect;
+            newestWindow->GetWindowRect(&rect);
+            windowSize = rect.Size();
+            spawningPoint = CPoint(rect.left + 50, rect.top + 50);
+        }
+    }
+   
     IWWindow* newWindow = new IWWindow(*approach, windowStyling);
     auto hwndPopup = newWindow->CreateEx(
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
         WINDOW_CLASS_NAME,
         _T(approach->title.c_str()),
         WS_POPUP,
-        int(windows.size()) * 50,       // x-position
-        int(windows.size()) * 50 + 100, // y-position
+        spawningPoint.x,
+        spawningPoint.y,
         windowSize.cx,
         windowSize.cy,
         nullptr,
@@ -141,6 +153,15 @@ void IWPlugin::OnTimer(int seconds)
 
     for (auto& window : windows) {
         window->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&liveData));
+
+        CRect windowRect;
+        window->GetWindowRect(&windowRect);
+        auto name = window->GetActiveApproachName();
+        auto description = name + " pos.";
+
+        std::string rect = std::to_string(windowRect.left) + "," + std::to_string(windowRect.top) + "," + std::to_string(windowRect.right) + "," + std::to_string(windowRect.bottom);
+
+        SaveDataToSettings(name.c_str(), description.c_str(), rect.c_str());
     }
 }
 
@@ -370,6 +391,27 @@ void IWPlugin::OnWindowClosed(IWWindow* window)
 void IWPlugin::OnWindowMenuOpenNew()
 {
     this->OpenNewWindow(&availableApproaches[0]);
+}
+
+void IWPlugin::LoadSavedWindowPositions()
+{
+    // For every available approach, check if there is a saved position
+    for (auto& approach : availableApproaches) {
+        const char* settings = GetDataFromSettings(approach.title.c_str());
+        if (settings) {
+            std::string settingsString = std::string(settings);
+            std::regex regex("([0-9]+),([0-9]+),([0-9]+),([0-9]+)");
+            std::smatch match;
+            if (std::regex_search(settingsString, match, regex)) {
+                CRect rect;
+                rect.left = std::stoi(match[1]);
+                rect.top = std::stoi(match[2]);
+                rect.right = std::stoi(match[3]);
+                rect.bottom = std::stoi(match[4]);
+                savedWindowPositions[approach.title] = rect;
+            }
+        }
+    }
 }
 
 bool IWPlugin::OnCompileCommand(const char* sCommandLine)
