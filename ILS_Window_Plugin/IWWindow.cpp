@@ -19,19 +19,17 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-IWWindow::IWWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, IWStyling styling) : titleBar(
-    title,
+IWWindow::IWWindow(IWApproachDefinition approachData, IWStyling styling) : titleBar(
+    approachData.title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
     RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
     RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b),
     this
 )
 {
-    this->approachSlope = appSlope;
-    this->approachLength = appLength;
-    this->leftToRight = leftToRight;
-    this->maxOffsetLeft = maxOffsetLeft;
-    this->maxOffsetRight = maxOffsetRight;
+    this->approachData = approachData;
+    this->approachLength = approachData.defaultRange;
+    this->leftToRight = approachData.localizerCourse > 0 && approachData.localizerCourse < 180;
 
     this->rangeStatusTextColor = RGB(styling.rangeStatusTextColor.r, styling.rangeStatusTextColor.g, styling.rangeStatusTextColor.b);
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
@@ -442,14 +440,19 @@ void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
 
 bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
 {
-    double angleDiff = position.directionToThreshold / 180.0 * PI; // anglediff in radians
-    double projectedDistanceFromThreshold = position.distanceToThreshold * cos(angleDiff);
-    double projectedDistanceFromExtendedCenterline = position.distanceToThreshold * tan(angleDiff);
-    if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetLeft) {
+    double heightAboveThreshold = position.trueAltitude - approachData.thresholdAltitude;
+    double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
+    double directionToThreshold = CalculateBearing(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
+    double angleDiff = (approachData.localizerCourse - directionToThreshold) / 180.0 * PI; // anglediff in radians
+
+    double projectedDistanceFromThreshold = distanceToThreshold * cos(angleDiff);
+    double projectedDistanceFromExtendedCenterline = distanceToThreshold * tan(angleDiff);
+
+    if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->approachData.maxOffsetLeft) {
         // Too far left
         return false;
     }
-    if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->maxOffsetRight) {
+    if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->approachData.maxOffsetRight) {
         // Too far right
         return false;
     }
@@ -457,12 +460,12 @@ bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoi
         // Wrong side of the threshold
         return false;
     }
-    if (position.heightAboveThreshold > approachHeightFt) {
+    if (heightAboveThreshold > approachHeightFt) {
         // Too high
         return false;
     }
     int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
-    int yPositionSlope = glidePathBottom.y - position.heightAboveThreshold * pixelsPerFt;
+    int yPositionSlope = glidePathBottom.y - heightAboveThreshold * pixelsPerFt;
     int yPositionCenterline = glidePathBottom.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;
     ptSideView = CPoint(xPosition, yPositionSlope);
     ptTopView = CPoint(xPosition, yPositionCenterline);
@@ -481,8 +484,40 @@ void IWWindow::UpdateDimentions()
     this->glidePathTop = CPoint(leftToRight ? rect.left + CALC_SIDE_MARGIN : rect.right - CALC_SIDE_MARGIN, rect.top + CALC_TOP_MARGIN);
     this->glidePathBottom = CPoint(leftToRight ? rect.right - CALC_SIDE_MARGIN : rect.left + CALC_SIDE_MARGIN, rect.bottom - CALC_BOTTOM_MARGIN);
 
-    this->approachHeightFt = (approachLength * FT_PER_NM * sin(approachSlope / 180.0 * PI));
+    this->approachHeightFt = (approachLength * FT_PER_NM * sin(approachData.glideslopeAngle / 180.0 * PI));
 
     this->pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
     this->pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / float(approachLength); // PS: negative when direction is left->right
+}
+
+double IWWindow::CalculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    // Convert latitude and longitude from degrees to radians
+    lat1 = lat1 * PI / 180.0;
+    lon1 = lon1 * PI / 180.0;
+    lat2 = lat2 * PI / 180.0;
+    lon2 = lon2 * PI / 180.0;
+    // Haversine formula
+    double dlat = lat2 - lat1;
+    double dlon = lon2 - lon1;
+    double a = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlon / 2), 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distance = EARTH_RADIUS_NM * c;
+    return distance;
+}
+
+double IWWindow::CalculateBearing(double lat1, double lon1, double lat2, double lon2) {
+    // Convert latitude and longitude from degrees to radians
+    lat1 = lat1 * PI / 180.0;
+    lon1 = lon1 * PI / 180.0;
+    lat2 = lat2 * PI / 180.0;
+    lon2 = lon2 * PI / 180.0;
+
+    // Calculate the bearing
+    double y = sin(lon2 - lon1) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1);
+    double bearing = atan2(y, x);
+    bearing = fmod(bearing + 2 * PI, 2 * PI);
+
+    // Convert to degrees
+    return bearing * 180.0 / PI;
 }

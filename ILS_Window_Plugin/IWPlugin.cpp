@@ -52,15 +52,7 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
-    IWWindow* newWindow = new IWWindow(
-        approach->title.c_str(), 
-        approach->glideslopeAngle, 
-        approach->defaultRange, 
-        leftToRight,
-        approach->maxOffsetLeft, 
-        approach->maxOffsetRight,
-        windowStyling
-    );
+    IWWindow* newWindow = new IWWindow(*approach, windowStyling);
 
     auto hwndPopup = newWindow->CreateEx(
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
@@ -92,57 +84,52 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 
 void IWPlugin::OnTimer(int seconds)
 {
-    for (const auto& approach : availableApproaches) {
-        IWLiveData parData;
-        if (approach.windowReference == nullptr) continue;
+    IWLiveData liveData;
 
-        EuroScopePlugIn::CPosition runwayThreshold;
-        runwayThreshold.m_Latitude = approach.thresholdLatitude;
-        runwayThreshold.m_Longitude = approach.thresholdLongitude;
+    for (auto rt = this->RadarTargetSelectFirst(); rt.IsValid(); rt = this->RadarTargetSelectNext(rt)) {
+        std::vector<IWTargetPosition> positionHistory;
 
-        for (auto rt = this->RadarTargetSelectFirst(); rt.IsValid(); rt = this->RadarTargetSelectNext(rt)) {
-            std::vector<IWTargetPosition> positionHistory;
+        EuroScopePlugIn::CRadarTargetPositionData previousPosition;
 
-            EuroScopePlugIn::CRadarTargetPositionData previousPosition;
+        for (int i = 0; i <= 9; ++i) { // Last 10 positions (for history trail)
 
-            for (int i = 0; i <= 9; ++i) { // Create history trail
+            EuroScopePlugIn::CRadarTargetPositionData positionData =
+                (i == 0) ? rt.GetPosition() : rt.GetPreviousPosition(previousPosition);
 
-                EuroScopePlugIn::CRadarTargetPositionData positionData =
-                    (i == 0) ? rt.GetPosition() : rt.GetPreviousPosition(previousPosition);
-
-                if (!positionData.IsValid()) {
-                    break;
-                }
-
-                positionHistory.push_back({
-                    positionData.GetPressureAltitude() - approach.thresholdAltitude,
-                    positionData.GetPosition().DistanceTo(runwayThreshold),
-                    approach.localizerCourse - positionData.GetPosition().DirectionTo(runwayThreshold)
-                    });
-
-                previousPosition = positionData;
+            if (!positionData.IsValid()) {
+                break;
             }
 
-            auto correlatedFlightPlan = rt.GetCorrelatedFlightPlan();
+            positionHistory.push_back({
+                positionData.GetPressureAltitude(),
+                positionData.GetPosition().m_Latitude,
+                positionData.GetPosition().m_Longitude,
+            });
 
-            std::string aircraftIcaoType = correlatedFlightPlan.IsValid()
-                ? std::string(correlatedFlightPlan.GetFlightPlanData().GetAircraftFPType())
-                : std::string("");
-
-            char aircraftWtc = correlatedFlightPlan.IsValid()
-                ? correlatedFlightPlan.GetFlightPlanData().GetAircraftWtc()
-                : ' ';
-
-            parData.radarTargets.push_back({
-                rt.GetCallsign(),
-                rt.GetPosition().GetSquawk(),
-                aircraftIcaoType,
-                aircraftWtc,
-                positionHistory
-             });
+            previousPosition = positionData;
         }
 
-        approach.windowReference->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&parData));
+        auto correlatedFlightPlan = rt.GetCorrelatedFlightPlan();
+
+        std::string aircraftIcaoType = correlatedFlightPlan.IsValid()
+            ? std::string(correlatedFlightPlan.GetFlightPlanData().GetAircraftFPType())
+            : std::string("");
+
+        char aircraftWtc = correlatedFlightPlan.IsValid()
+            ? correlatedFlightPlan.GetFlightPlanData().GetAircraftWtc()
+            : ' ';
+
+        liveData.radarTargets.push_back({
+            rt.GetCallsign(),
+            rt.GetPosition().GetSquawk(),
+            aircraftIcaoType,
+            aircraftWtc,
+            positionHistory
+        });
+    }
+
+    for (auto& window : windows) {
+        window->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&liveData));
     }
 }
 

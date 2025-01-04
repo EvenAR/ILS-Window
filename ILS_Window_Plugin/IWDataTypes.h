@@ -11,9 +11,9 @@ struct RGB {
 };
 
 struct IWTargetPosition {
-    int heightAboveThreshold;
-    double distanceToThreshold;
-    double directionToThreshold;
+    int trueAltitude;
+    double latitude;
+    double longitude;
 };
 
 struct IWRadarTarget {

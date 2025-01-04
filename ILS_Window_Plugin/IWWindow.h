@@ -20,6 +20,9 @@
 #define TITLE_BAR_HEIGHT 27
 #define SIZE_SNAP_INCREMENTS 20.0
 
+#define EARTH_RADIUS_NM 3440.065
+#define PI 3.14159265359
+
 class IWWindow;
 
 class IIWWndEventListener {
@@ -51,9 +54,10 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         DECLARE_MESSAGE_MAP()
 
     public:
-        IWWindow(const char* title, double appSlope, double appLength, bool leftToRight, float maxOffsetLeft, float maxOffsetRight, IWStyling styling);
+        IWWindow(IWApproachDefinition approachData, IWStyling styling);
         virtual ~IWWindow();
         void SetListener(IIWWndEventListener* listener);
+        std::string GetSelectedApproach(IWApproachDefinition& approach);
 
     private:
         IWTitleBar titleBar;
@@ -61,6 +65,9 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         void DrawDiamond(CPoint pt, int size, CDC& dc);
         bool CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
         void UpdateDimentions();
+
+        double CalculateDistance(double lat1, double lon1, double lat2, double lon2);
+        double CalculateBearing(double lat1, double lon1, double lat2, double lon2);
 
         COLORREF rangeStatusTextColor;
         COLORREF windowBackground;
@@ -77,11 +84,9 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
 
         std::set<std::string> clickedTargets;
 
-        double approachSlope;
+        IWApproachDefinition approachData;
         int approachLength;
         bool leftToRight;
-        float maxOffsetLeft;
-        float maxOffsetRight;
 
         // Dimentions
         float approachHeightFt;
