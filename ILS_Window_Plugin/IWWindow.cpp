@@ -440,6 +440,7 @@ void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
 
 bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
 {
+    // Calculate position relative to the runway
     double heightAboveThreshold = position.trueAltitude - approachData.thresholdAltitude;
     double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
     double directionToThreshold = CalculateBearing(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
@@ -464,6 +465,7 @@ bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoi
         // Too high
         return false;
     }
+
     int xPosition = glidePathBottom.x - projectedDistanceFromThreshold * pixelsPerNauticalMile;
     int yPositionSlope = glidePathBottom.y - heightAboveThreshold * pixelsPerFt;
     int yPositionCenterline = glidePathBottom.y + projectedDistanceFromExtendedCenterline * pixelsPerNauticalMile;

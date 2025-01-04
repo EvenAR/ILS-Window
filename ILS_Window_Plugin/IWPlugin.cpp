@@ -96,7 +96,11 @@ void IWPlugin::OnTimer(int seconds)
             EuroScopePlugIn::CRadarTargetPositionData positionData =
                 (i == 0) ? rt.GetPosition() : rt.GetPreviousPosition(previousPosition);
 
-            if (!positionData.IsValid()) {
+            const bool notOfInterest =
+                positionData.GetReportedGS() < 30 || 
+                positionData.GetPressureAltitude() > 10000;
+
+            if (notOfInterest || !positionData.IsValid()) {
                 break;
             }
 
@@ -119,13 +123,15 @@ void IWPlugin::OnTimer(int seconds)
             ? correlatedFlightPlan.GetFlightPlanData().GetAircraftWtc()
             : ' ';
 
-        liveData.radarTargets.push_back({
-            rt.GetCallsign(),
-            rt.GetPosition().GetSquawk(),
-            aircraftIcaoType,
-            aircraftWtc,
-            positionHistory
-        });
+        if (positionHistory.size() > 0) {
+            liveData.radarTargets.push_back({
+                rt.GetCallsign(),
+                rt.GetPosition().GetSquawk(),
+                aircraftIcaoType,
+                aircraftWtc,
+                positionHistory
+            });
+        }
     }
 
     for (auto& window : windows) {
