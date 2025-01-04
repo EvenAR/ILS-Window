@@ -13,6 +13,7 @@ class IWTitleBarEventListener {
 public:
     virtual void OnResizeStart() = 0;
     virtual void OnCloseButtonClicked() = 0;
+    virtual void OnMenuButtonClicked() = 0;
 };
 
 class IWTitleBar : public CStatic {
@@ -20,7 +21,7 @@ class IWTitleBar : public CStatic {
 
     public:
         IWTitleBar(
-            const std::string& title, 
+            std::string title,
             COLORREF backgroundColor,
             COLORREF textColor, 
             COLORREF outerFrameColor, 
@@ -30,6 +31,8 @@ class IWTitleBar : public CStatic {
 
         // Initialize the top bar
         BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
+
+        void SetTitle(const std::string& title) { this->text = title; }
 
     private: 
         IWCloseBtn closeButton;

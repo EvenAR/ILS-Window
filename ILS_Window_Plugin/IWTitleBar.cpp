@@ -10,7 +10,7 @@ BEGIN_MESSAGE_MAP(IWTitleBar, CStatic)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-IWTitleBar::IWTitleBar(const std::string& title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IWTitleBarEventListener* listener)
+IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IWTitleBarEventListener* listener)
 {
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
@@ -79,9 +79,17 @@ void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     resizeButton.GetClientRect(&resizeButtonRect);
     resizeButton.ClientToScreen(&resizeButtonRect);
 
+    CRect menuButtonRect;
+    menuButton.GetClientRect(&menuButtonRect);
+    menuButton.ClientToScreen(&menuButtonRect);
+
     if (resizeButtonRect.PtInRect(point))  // If click is not on the close button
     {
         this->eventListener->OnResizeStart();
+    }
+    else if (menuButtonRect.PtInRect(point))
+    {
+        this->eventListener->OnMenuButtonClicked();
     }
     else {
         // Simulate dragging the window

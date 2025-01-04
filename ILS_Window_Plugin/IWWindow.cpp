@@ -1,15 +1,20 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "IWWindow.h"
 #include <cmath>
+
+#define MENU_ITEM_FLIP              10000
+#define MENU_ITEM_SHOW_LABELS       10001
+#define MENU_ITEM_NEW_WINDOW        10002
+#define MENU_ITEM_PROCEDURES_START  10003
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_PAINT()
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_SIZING()
-    ON_WM_LBUTTONDOWN()   // Add the message map entry for WM_LBUTTONDOWN
-    ON_WM_LBUTTONUP()     // Add the message map entry for WM_LBUTTONUP
-    ON_WM_CTLCOLOR() // Handle custom control colors
+    ON_WM_LBUTTONDOWN()
+    ON_WM_LBUTTONUP()   
+    ON_WM_CTLCOLOR()
     ON_MESSAGE(WM_UPDATE_DATA, &IWWindow::OnUpdateData)
     ON_WM_DESTROY()
     ON_WM_ERASEBKGND()
@@ -17,19 +22,23 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_GETMINMAXINFO()
     ON_WM_MOUSEWHEEL()
     ON_WM_TIMER()
+    ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_NEW_WINDOW, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_START, MENU_ITEM_PROCEDURES_START + 100, &IWWindow::OnNewWindowSelected)
 END_MESSAGE_MAP()
 
-IWWindow::IWWindow(IWApproachDefinition approachData, IWStyling styling) : titleBar(
-    approachData.title,
+IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling) : titleBar(
+    selectedApproach.title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
     RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
     RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b),
     this
 )
 {
-    this->approachData = approachData;
-    this->approachLength = approachData.defaultRange;
-    this->leftToRight = approachData.localizerCourse > 0 && approachData.localizerCourse < 180;
+    this->selectedApproach = selectedApproach;
+    this->approachLength = selectedApproach.defaultRange;
+    this->leftToRight = selectedApproach.localizerCourse > 0 && selectedApproach.localizerCourse < 180;
 
     this->rangeStatusTextColor = RGB(styling.rangeStatusTextColor.r, styling.rangeStatusTextColor.g, styling.rangeStatusTextColor.b);
     this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
@@ -343,6 +352,13 @@ void IWWindow::OnCloseButtonClicked()
     this->DestroyWindow();
 }
 
+void IWWindow::OnMenuButtonClicked()
+{
+    CPoint point;
+    GetCursorPos(&point);
+    CreatePopupMenu(point);
+}
+
 void IWWindow::OnDestroy()
 {
     if (m_listener) {
@@ -355,6 +371,11 @@ void IWWindow::OnDestroy()
 void IWWindow::SetListener(IIWWndEventListener* listener)
 {
     m_listener = listener;
+}
+
+void IWWindow::SetAvailableApproaches(const std::vector<IWApproachDefinition>& approaches)
+{
+    this->availableApproaches = approaches;
 }
 
 void IWWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
@@ -441,19 +462,19 @@ void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
 bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
 {
     // Calculate position relative to the runway
-    double heightAboveThreshold = position.trueAltitude - approachData.thresholdAltitude;
-    double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
-    double directionToThreshold = CalculateBearing(position.latitude, position.longitude, approachData.thresholdLatitude, approachData.thresholdLongitude);
-    double angleDiff = (approachData.localizerCourse - directionToThreshold) / 180.0 * PI; // anglediff in radians
+    double heightAboveThreshold = position.trueAltitude - selectedApproach.thresholdAltitude;
+    double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
+    double directionToThreshold = CalculateBearing(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
+    double angleDiff = (selectedApproach.localizerCourse - directionToThreshold) / 180.0 * PI; // anglediff in radians
 
     double projectedDistanceFromThreshold = distanceToThreshold * cos(angleDiff);
     double projectedDistanceFromExtendedCenterline = distanceToThreshold * tan(angleDiff);
 
-    if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->approachData.maxOffsetLeft) {
+    if (projectedDistanceFromExtendedCenterline < 0 && abs(projectedDistanceFromExtendedCenterline) > this->selectedApproach.maxOffsetLeft) {
         // Too far left
         return false;
     }
-    if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->approachData.maxOffsetRight) {
+    if (projectedDistanceFromExtendedCenterline > 0 && abs(projectedDistanceFromExtendedCenterline) > this->selectedApproach.maxOffsetRight) {
         // Too far right
         return false;
     }
@@ -486,7 +507,7 @@ void IWWindow::UpdateDimentions()
     this->glidePathTop = CPoint(leftToRight ? rect.left + CALC_SIDE_MARGIN : rect.right - CALC_SIDE_MARGIN, rect.top + CALC_TOP_MARGIN);
     this->glidePathBottom = CPoint(leftToRight ? rect.right - CALC_SIDE_MARGIN : rect.left + CALC_SIDE_MARGIN, rect.bottom - CALC_BOTTOM_MARGIN);
 
-    this->approachHeightFt = (approachLength * FT_PER_NM * sin(approachData.glideslopeAngle / 180.0 * PI));
+    this->approachHeightFt = (approachLength * FT_PER_NM * sin(selectedApproach.glideslopeAngle / 180.0 * PI));
 
     this->pixelsPerFt = (glidePathBottom.y - glidePathTop.y) / approachHeightFt;
     this->pixelsPerNauticalMile = (glidePathBottom.x - glidePathTop.x) / float(approachLength); // PS: negative when direction is left->right
@@ -527,15 +548,97 @@ double IWWindow::CalculateBearing(double lat1, double lon1, double lat2, double 
 std::string IWWindow::GetActiveApproachName() const
 {
     std::lock_guard<std::mutex> lock(approachDataMutex);
-    return approachData.title;
+    return selectedApproach.title;
 }
 
-void IWWindow::SetActiveApproach(const IWApproachDefinition& approachData)
+void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 {
     std::lock_guard<std::mutex> lock(approachDataMutex);
-    this->approachData = approachData;
-    this->approachLength = approachData.defaultRange;
-    this->leftToRight = approachData.localizerCourse > 0 && approachData.localizerCourse < 180;
+    this->selectedApproach = selectedApproach;
+    this->approachLength = selectedApproach.defaultRange;
+    this->leftToRight = selectedApproach.localizerCourse > 0 && selectedApproach.localizerCourse < 180;
+    this->titleBar.SetTitle(selectedApproach.title);
     UpdateDimentions();
+    Invalidate();
+}
+
+void IWWindow::CreatePopupMenu(CPoint point)
+{
+    // Create the main popup menu
+    CMenu menu;
+    menu.CreatePopupMenu();
+
+    // Add items to the main menu
+    menu.AppendMenu(
+        MF_STRING | (this->showTagsByDefault ? MF_CHECKED : MF_UNCHECKED),
+        MENU_ITEM_SHOW_LABELS,  
+        _T("Show labels by default")
+    );
+    menu.AppendMenu(
+        MF_STRING,
+        MENU_ITEM_FLIP,
+        _T("Change orientation")
+    );
+    menu.AppendMenu(
+        MF_STRING,
+        MENU_ITEM_NEW_WINDOW,
+        _T("Create a new window")
+    );
+
+    // Create the submenu
+    CMenu subMenu;
+    subMenu.CreatePopupMenu();
+
+    // Add approaches to the submenu
+    int id = 0;
+    for (const IWApproachDefinition& approach : availableApproaches)
+    {
+        bool isActive = approach.title == this->selectedApproach.title;
+        int menuItemID = MENU_ITEM_PROCEDURES_START + id++;
+        if (isActive) {
+            subMenu.AppendMenu(MF_STRING | MF_CHECKED, menuItemID, CString(approach.title.c_str()));
+        }
+        else {
+            subMenu.AppendMenu(MF_STRING, menuItemID, CString(approach.title.c_str()));
+        }
+    }
+
+    // Attach the submenu to the third item
+    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenu.m_hMenu, _T("Procedure"));
+
+    // Display the menu
+    menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+}
+
+BOOL IWWindow::OnMenuOptionSelected(UINT nID)
+{
+    if (nID == MENU_ITEM_FLIP)
+    {
+        this->leftToRight = !this->leftToRight;
+        UpdateDimentions();
+        Invalidate();
+    }
+    else if (nID == MENU_ITEM_SHOW_LABELS)
+    {
+        this->showTagsByDefault = !this->showTagsByDefault;
+        Invalidate();
+    }
+    else if (nID == MENU_ITEM_NEW_WINDOW)
+    {
+        if (m_listener) {
+            m_listener->OnNewWindowSelected();
+        }
+    }
+    return TRUE;
+}
+
+void IWWindow::OnNewWindowSelected(UINT nID)
+{
+    int index = nID - MENU_ITEM_PROCEDURES_START;
+    if (index >= 0 && index < availableApproaches.size())
+    {
+        IWApproachDefinition selectedApproach = availableApproaches[index];
+        SetActiveApproach(selectedApproach);
+    }
     Invalidate();
 }

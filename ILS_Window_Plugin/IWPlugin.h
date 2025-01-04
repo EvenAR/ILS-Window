@@ -26,10 +26,12 @@ private:
     void OnTimer(int seconds) override;
     void OnAirportRunwayActivityChanged() override;
 
+    // Events from a window
+    void OnWindowClosed(IWWindow* window) override;
+    void OnNewWindowSelected() override;
 public:
     IWPlugin();
     ~IWPlugin();
-    void OnWindowClosed(IWWindow* window) override;
 
     std::vector<IWApproachDefinition> ReadApproachDefinitions(const std::string& jsonFilePath);
     IWStyling ReadStyling(const std::string& iniFilePath);

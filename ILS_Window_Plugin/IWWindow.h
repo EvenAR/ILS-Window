@@ -29,6 +29,7 @@ class IWWindow;
 class IIWWndEventListener {
 public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
+    virtual void OnNewWindowSelected() = 0;
 };
 
 class IWWindow : public CWnd, IWTitleBarEventListener {
@@ -46,6 +47,9 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 
+        BOOL OnMenuOptionSelected(UINT nID);
+        void OnNewWindowSelected(UINT nID);
+
         void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
 
@@ -55,11 +59,12 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         DECLARE_MESSAGE_MAP()
 
     public:
-        IWWindow(IWApproachDefinition approachData, IWStyling styling);
+        IWWindow(IWApproachDefinition selectedApproach, IWStyling styling);
         virtual ~IWWindow();
         void SetListener(IIWWndEventListener* listener);
         std::string GetActiveApproachName() const;
-        void SetActiveApproach(const IWApproachDefinition& approachData);
+        void SetActiveApproach(const IWApproachDefinition& selectedApproach);
+        void SetAvailableApproaches(const std::vector<IWApproachDefinition>& approaches);
 
     private:
         IWTitleBar titleBar;
@@ -67,6 +72,10 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         void DrawDiamond(CPoint pt, int size, CDC& dc);
         bool CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
         void UpdateDimentions();
+        void CreatePopupMenu(CPoint point);
+
+        IWApproachDefinition selectedApproach;
+        std::vector<IWApproachDefinition> availableApproaches;
 
         double CalculateDistance(double lat1, double lon1, double lat2, double lon2);
         double CalculateBearing(double lat1, double lon1, double lat2, double lon2);
@@ -86,7 +95,6 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
 
         std::set<std::string> clickedTargets;
 
-        IWApproachDefinition approachData;
         int approachLength;
         bool leftToRight;
 
@@ -105,6 +113,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         // For handling events from the title bar
         void OnResizeStart() override;
         void OnCloseButtonClicked() override;
+        void OnMenuButtonClicked() override;
 
         // For thread safety between EuroScope and the window thread
         mutable std::mutex approachDataMutex;

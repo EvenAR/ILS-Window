@@ -49,7 +49,6 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-    bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
     IWWindow* newWindow = new IWWindow(*approach, windowStyling);
 
     auto hwndPopup = newWindow->CreateEx(
@@ -74,6 +73,7 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
     newWindow->ShowWindow(SW_SHOWNOACTIVATE); // Show but don't steal focus
     newWindow->UpdateWindow();
     newWindow->SetListener(this);
+    newWindow->SetAvailableApproaches(availableApproaches);
 
     windows.push_back(newWindow);
 }
@@ -357,6 +357,11 @@ void IWPlugin::OnWindowClosed(IWWindow* window)
     if (it != windows.end()) {
         windows.erase(it);
     }
+}
+
+void IWPlugin::OnNewWindowSelected()
+{
+    this->OpenNewWindow(&availableApproaches[0]);
 }
 
 bool IWPlugin::OnCompileCommand(const char* sCommandLine)
