@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "IWWindow.h"
+#include <cmath>
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_PAINT()
     ON_WM_CREATE()
     ON_WM_SIZE()
+    ON_WM_SIZING()
     ON_WM_LBUTTONDOWN()   // Add the message map entry for WM_LBUTTONDOWN
     ON_WM_LBUTTONUP()     // Add the message map entry for WM_LBUTTONUP
     ON_WM_CTLCOLOR() // Handle custom control colors
@@ -249,6 +251,25 @@ void IWWindow::OnSize(UINT nType, int cx, int cy)
        CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT); 
        titleBar.MoveWindow(barRect);
     }
+}
+
+void IWWindow::OnSizing(UINT nSide, LPRECT lpRect)
+{
+    int width = lpRect->right - lpRect->left;
+    int height = lpRect->bottom - lpRect->top;
+
+    // Snap width and height to X px increments
+    int snappedWidth = static_cast<int>(std::round(width / SIZE_SNAP_INCREMENTS) * SIZE_SNAP_INCREMENTS);
+    int snappedHeight = static_cast<int>(std::round(height / SIZE_SNAP_INCREMENTS) * SIZE_SNAP_INCREMENTS);
+
+    // Adjust the RECT based on the resizing side. 
+    // It's always the top right corner in our case
+    if (nSide == WMSZ_TOPRIGHT) {
+        lpRect->top = lpRect->bottom - snappedHeight;
+        lpRect->right = lpRect->left + snappedWidth;
+    }
+
+    CWnd::OnSizing(nSide, lpRect); // Call the base class handler
 }
 
 BOOL IWWindow::OnNcActivate(BOOL bActive)

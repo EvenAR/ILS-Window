@@ -18,6 +18,7 @@
 #define FT_PER_NM 6076.11549
 
 #define TITLE_BAR_HEIGHT 27
+#define SIZE_SNAP_INCREMENTS 20.0
 
 class IWWindow;
 
@@ -31,6 +32,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
         afx_msg  void OnPaint();
         afx_msg void OnSize(UINT nType, int cx, int cy);
+        afx_msg void OnSizing(UINT nSide, LPRECT lpRect);
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);
         afx_msg void OnDestroy();
