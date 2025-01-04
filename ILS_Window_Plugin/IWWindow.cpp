@@ -2,18 +2,21 @@
 #include "IWWindow.h"
 #include <cmath>
 
-#define MENU_ITEM_FLIP              10000
-#define MENU_ITEM_SHOW_LABELS       10001
-#define MENU_ITEM_NEW_WINDOW        10002
-#define MENU_ITEM_PROCEDURES_START  10003
+#define MAX_PROCEDURES 100
+
+#define MENU_ITEM_FLIP                  10000
+#define MENU_ITEM_SHOW_LABELS           10001
+#define MENU_ITEM_PROCEDURES_SEL_START  20000
+#define MENU_ITEM_PROCEDURES_NEW_START  30000
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_PAINT()
     ON_WM_CREATE()
     ON_WM_SIZE()
+    ON_WM_MOVE()
     ON_WM_SIZING()
     ON_WM_LBUTTONDOWN()
-    ON_WM_LBUTTONUP()   
+    ON_WM_LBUTTONUP()
     ON_WM_CTLCOLOR()
     ON_MESSAGE(WM_UPDATE_DATA, &IWWindow::OnUpdateData)
     ON_WM_DESTROY()
@@ -22,10 +25,11 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_GETMINMAXINFO()
     ON_WM_MOUSEWHEEL()
     ON_WM_TIMER()
+    ON_MESSAGE(WM_EXITSIZEMOVE, &IWWindow::OnExitSizeMove)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
-    ON_COMMAND_EX(MENU_ITEM_NEW_WINDOW, &IWWindow::OnMenuOptionSelected)
-    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_START, MENU_ITEM_PROCEDURES_START + 100, &IWWindow::OnProcedureSelected)
+    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
+    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
 
 IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling) : titleBar(
@@ -255,9 +259,19 @@ void IWWindow::OnSize(UINT nType, int cx, int cy)
 
     if (titleBar.GetSafeHwnd())
     {
-       CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT); 
-       titleBar.MoveWindow(barRect);
+        CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT);
+        titleBar.MoveWindow(barRect);
     }
+}
+
+LRESULT IWWindow::OnExitSizeMove(WPARAM wParam, LPARAM lParam)
+{
+    // Notify listener about the end of the resize or move operation
+    if (m_listener)
+    {
+        m_listener->OnWindowRectangleChanged(this);
+    }
+    return 0;
 }
 
 void IWWindow::OnSizing(UINT nSide, LPRECT lpRect)
@@ -569,23 +583,27 @@ void IWWindow::CreatePopupMenu(CPoint point)
     menu.CreatePopupMenu();
 
     // Create the submenu with the available approaches
-    CMenu subMenu;
-    subMenu.CreatePopupMenu();
+    CMenu subMenuSelect;
+    CMenu subMenuOpenNew;
+    subMenuSelect.CreatePopupMenu();
+    subMenuOpenNew.CreatePopupMenu();
 
     int idCounter = 0;
     for (const IWApproachDefinition& approach : availableApproaches)
     {
         bool isActive = approach.title == this->selectedApproach.title;
-        int menuItemID = MENU_ITEM_PROCEDURES_START + idCounter++;
+        int menuItemID = idCounter++;
         if (isActive) {
-            subMenu.AppendMenu(MF_STRING | MF_CHECKED, menuItemID, CString(approach.title.c_str()));
+            subMenuSelect.AppendMenu(MF_STRING | MF_CHECKED, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
         }
         else {
-            subMenu.AppendMenu(MF_STRING, menuItemID, CString(approach.title.c_str()));
+            subMenuSelect.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
         }
+        subMenuOpenNew.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_NEW_START + menuItemID, CString(approach.title.c_str()));
     }
 
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenu.m_hMenu, _T("Procedure"));
+    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect.m_hMenu, _T("View"));
+    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew.m_hMenu, _T("Open"));
 
     // Add static menu items
     menu.AppendMenu(
@@ -597,11 +615,6 @@ void IWWindow::CreatePopupMenu(CPoint point)
         MF_STRING,
         MENU_ITEM_FLIP,
         _T("Change orientation")
-    );
-    menu.AppendMenu(
-        MF_STRING,
-        MENU_ITEM_NEW_WINDOW,
-        _T("Open a new window")
     );
 
     // Display the menu
@@ -621,22 +634,28 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
         this->showTagsByDefault = !this->showTagsByDefault;
         Invalidate();
     }
-    else if (nID == MENU_ITEM_NEW_WINDOW)
-    {
-        if (m_listener) {
-            m_listener->OnWindowMenuOpenNew();
-        }
-    }
     return TRUE;
 }
 
 void IWWindow::OnProcedureSelected(UINT nID)
 {
-    int index = nID - MENU_ITEM_PROCEDURES_START;
+    int index = nID - MENU_ITEM_PROCEDURES_SEL_START;
     if (index >= 0 && index < availableApproaches.size())
     {
+        // Set the selected approach
         IWApproachDefinition selectedApproach = availableApproaches[index];
         SetActiveApproach(selectedApproach);
     }
+    else
+    {
+        // Open a new window with the selected approach
+        index = nID - MENU_ITEM_PROCEDURES_NEW_START;
+        if (index >= 0 && index < availableApproaches.size())
+        {
+            IWApproachDefinition selectedApproach = availableApproaches[index];
+            m_listener->OnWindowMenuOpenNew(selectedApproach.title);
+        }
+    }
     Invalidate();
 }
+

@@ -29,14 +29,16 @@ class IWWindow;
 class IIWWndEventListener {
 public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
-    virtual void OnWindowMenuOpenNew() = 0;
+    virtual void OnWindowMenuOpenNew(std::string title) = 0;
+    virtual void OnWindowRectangleChanged(IWWindow* window) = 0;
 };
 
 class IWWindow : public CWnd, IWTitleBarEventListener {
     protected:
         afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-        afx_msg  void OnPaint();
+        afx_msg void OnPaint();
         afx_msg void OnSize(UINT nType, int cx, int cy);
+        afx_msg LRESULT OnExitSizeMove(WPARAM wParam, LPARAM lParam);
         afx_msg void OnSizing(UINT nSide, LPRECT lpRect);
         afx_msg BOOL PreCreateWindow(CREATESTRUCT& cs);
         afx_msg LRESULT OnUpdateData(WPARAM wParam, LPARAM lParam);

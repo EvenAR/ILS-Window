@@ -153,15 +153,6 @@ void IWPlugin::OnTimer(int seconds)
 
     for (auto& window : windows) {
         window->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&liveData));
-
-        CRect windowRect;
-        window->GetWindowRect(&windowRect);
-        auto name = window->GetActiveApproachName();
-        auto description = name + " pos.";
-
-        std::string rect = std::to_string(windowRect.left) + "," + std::to_string(windowRect.top) + "," + std::to_string(windowRect.right) + "," + std::to_string(windowRect.bottom);
-
-        SaveDataToSettings(name.c_str(), description.c_str(), rect.c_str());
     }
 }
 
@@ -388,9 +379,29 @@ void IWPlugin::OnWindowClosed(IWWindow* window)
     }
 }
 
-void IWPlugin::OnWindowMenuOpenNew()
+void IWPlugin::OnWindowMenuOpenNew(std::string approachTitle)
 {
-    this->OpenNewWindow(&availableApproaches[0]);
+    auto selectedApproach = std::find_if(availableApproaches.begin(), availableApproaches.end(),
+        [&approachTitle](const IWApproachDefinition& approach) {
+            return approach.title == approachTitle;
+        });
+
+    if (selectedApproach != availableApproaches.end()) {
+        OpenNewWindow(&(*selectedApproach));
+    }
+    else {
+        OpenNewWindow(&availableApproaches[0]);
+    }
+}
+
+void IWPlugin::OnWindowRectangleChanged(IWWindow* window)
+{
+    CRect windowRect;
+    window->GetWindowRect(&windowRect);
+    std::string name = window->GetActiveApproachName();
+    std::string description = name + " pos.";
+    std::string rect = std::to_string(windowRect.left) + "," + std::to_string(windowRect.top) + "," + std::to_string(windowRect.right) + "," + std::to_string(windowRect.bottom);
+    SaveDataToSettings(name.c_str(), description.c_str(), rect.c_str());
 }
 
 void IWPlugin::LoadSavedWindowPositions()

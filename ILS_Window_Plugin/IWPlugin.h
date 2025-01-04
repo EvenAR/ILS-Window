@@ -29,7 +29,8 @@ private:
 
     // Events from a window
     void OnWindowClosed(IWWindow* window) override;
-    void OnWindowMenuOpenNew() override;
+    void OnWindowMenuOpenNew(std::string approachTitle) override;
+    void OnWindowRectangleChanged(IWWindow* window) override;
 public:
     IWPlugin();
     ~IWPlugin();
