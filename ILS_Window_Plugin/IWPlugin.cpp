@@ -224,12 +224,14 @@ void IWPlugin::SyncWithActiveRunways()
 }
 
 std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::string& jsonFilePath) {
+    const std::string generalErrorMessage = "Could not load approach definitions";
+
     std::vector<IWApproachDefinition> approaches;
 
     // Open the JSON file
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
-        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, "Unable to open JSON file '" + jsonFilePath + "'");
         return approaches;
     }
 
@@ -239,13 +241,13 @@ std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::s
         file >> jsonData;
     }
     catch (const nlohmann::json::parse_error& e) {
-        this->DisplayUserMessage("PAR plugin", "Error", ("JSON parsing error: " + std::string(e.what())).c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, std::string(e.what()));
         return approaches;
     }
 
     // Check if "approaches" key exists
     if (!jsonData.contains("approaches") || !jsonData["approaches"].is_array()) {
-        this->DisplayUserMessage("PAR plugin", "Error", "'approaches' key not found or is not an array.", false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, "'approaches' key not found or is not an array.");
         return approaches;
     }
 
@@ -272,7 +274,7 @@ std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::s
             approaches.push_back(approach);
         }
         catch (const nlohmann::json::exception& e) {
-            this->DisplayUserMessage("PAR plugin", "Error", ("Error parsing approach data: " + std::string(e.what())).c_str(), false, true, false, false, false);
+            this->ShowErrorMessage(generalErrorMessage, "Error parsing approach data: " + std::string(e.what()));
         }
     }
 
@@ -280,26 +282,28 @@ std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::s
 }
 
 IWStyling IWPlugin::ReadStyling(const std::string& jsonFilePath) {
+    const std::string generalErrorMessage = "Could not load style settings";
+
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
-        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, "Unable to open JSON file: " + jsonFilePath);
     }
 
     nlohmann::json jsonData;
     file >> jsonData;
 
-    auto readColor = [&jsonData,this](const std::string& key) -> RGB {
+    auto readColor = [&jsonData, &generalErrorMessage, this](const std::string& key) -> RGB {
         if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
             return HexToRGB(jsonData["styling"][key].get<std::string>());
         }
-        this->DisplayUserMessage("PAR plugin", "Error", ("'" + key + "' key not found.").c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, ("'" + key + "' key not found.").c_str());
     };
 
-    auto readUnsignedInt = [&jsonData, this](const std::string& key) -> unsigned int {
+    auto readUnsignedInt = [&jsonData, &generalErrorMessage, this](const std::string& key) -> unsigned int {
         if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
             return jsonData["styling"][key].get<unsigned int>();
         }
-        this->DisplayUserMessage("PAR plugin", "Error", ("'" + key + "' key not found or is not an unsigned integer.").c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalErrorMessage, ("'" + key + "' key not found.").c_str());
         return 0; // Default value when key is not found or is not an unsigned integer
     };
 
@@ -351,7 +355,7 @@ IWStyling IWPlugin::ReadStyling(const std::string& jsonFilePath) {
 IWBehaviourSettings IWPlugin::ReadBehaviourSettings(const std::string& jsonFilePath) {
     std::ifstream file(jsonFilePath);
     if (!file.is_open()) {
-        this->DisplayUserMessage("PAR plugin", "Error", (std::string("Unable to open JSON file: ") + jsonFilePath).c_str(), false, true, false, false, false);
+        this->ShowErrorMessage("Could not load behaviour options", "Unable to open JSON file '" + jsonFilePath + "'");
     }
 
     nlohmann::json jsonData;
@@ -425,8 +429,10 @@ void IWPlugin::LoadSavedWindowPositions()
     }
 }
 
+
 bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 {
+    const std::string generalError = "Could not open ILS window";
     const std::string command(sCommandLine);
     const std::string prefix = ".par ";
 
@@ -438,7 +444,7 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
     std::string argument = stringToUpper(trimString(command.substr(prefix.length())));
 
     if (argument.empty()) {
-        this->DisplayUserMessage("PAR plugin", "Error", "No approach name specified after '.par'.", false, true, false, false, false);
+        this->ShowErrorMessage(generalError, "No approach name specified after '.par'.");
         return false;
     }
 
@@ -455,8 +461,12 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
     }
     else {
         // Approach not found
-        std::string errorMessage = "Approach '" + argument + "' not found.";
-        this->DisplayUserMessage("PAR plugin", "Error", errorMessage.c_str(), false, true, false, false, false);
+        this->ShowErrorMessage(generalError, "Approach '" + argument + "' not found.");
         return false; // Command not handled
     }
+}
+
+void IWPlugin::ShowErrorMessage(std::string consequence, std::string details)
+{
+    this->DisplayUserMessage(PLUGIN_NAME, consequence.c_str(), details.c_str(), false, true, false, true, false);
 }

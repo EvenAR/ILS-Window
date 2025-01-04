@@ -7,6 +7,7 @@
 #include <map>
 
 #define WINDOW_CLASS_NAME _T("IWWindow")
+#define PLUGIN_NAME "ILS Window Plugin"
 
 class IWPlugin : public EuroScopePlugIn::CPlugIn, IIWWndEventListener {
 private:
@@ -19,6 +20,7 @@ private:
     void OpenNewWindow(IWApproachDefinition* approach);
     void SyncWithActiveRunways();
     void LoadSavedWindowPositions();
+    void ShowErrorMessage(std::string consequence, std::string details);
 
     bool autoOpenWhenRunwaysChanges = true;
 
