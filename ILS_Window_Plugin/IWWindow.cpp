@@ -523,3 +523,19 @@ double IWWindow::CalculateBearing(double lat1, double lon1, double lat2, double 
     // Convert to degrees
     return bearing * 180.0 / PI;
 }
+
+std::string IWWindow::GetActiveApproachName() const
+{
+    std::lock_guard<std::mutex> lock(approachDataMutex);
+    return approachData.title;
+}
+
+void IWWindow::SetActiveApproach(const IWApproachDefinition& approachData)
+{
+    std::lock_guard<std::mutex> lock(approachDataMutex);
+    this->approachData = approachData;
+    this->approachLength = approachData.defaultRange;
+    this->leftToRight = approachData.localizerCourse > 0 && approachData.localizerCourse < 180;
+    UpdateDimentions();
+    Invalidate();
+}

@@ -47,8 +47,6 @@ IWPlugin::~IWPlugin()
 
 void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
 {
-    if (approach->windowReference) return; // Already an open window for this approach
-
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
     bool leftToRight = approach->localizerCourse > 0 && approach->localizerCourse < 180;
@@ -77,7 +75,6 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
     newWindow->UpdateWindow();
     newWindow->SetListener(this);
 
-    approach->windowReference = newWindow;
     windows.push_back(newWindow);
 }
 
@@ -181,11 +178,11 @@ void IWPlugin::SyncWithActiveRunways()
         }
     }
 
+    // Find open windows that should be closed
     for (auto& window : windows) {
-        // Find windows that are not in the updated list of appraoches that should be open
         bool shouldBeClosed = true;
         for (auto& approach : approachesThatShouldBeOpen) {
-            if (approach->windowReference == window) {
+            if (window->GetActiveApproachName() == approach->title) {
                 shouldBeClosed = false;
             }
         }
@@ -196,7 +193,11 @@ void IWPlugin::SyncWithActiveRunways()
 
     // Open windows that should be open
     for (auto& approach : approachesThatShouldBeOpen) {
-        if (approach->windowReference == nullptr) {
+        bool alreadyOpen = std::any_of(windows.begin(), windows.end(), [&approach](const IWWindow* window) {
+            return window->GetActiveApproachName() == approach->title;
+        }); 
+
+        if (!alreadyOpen) {
             this->OpenNewWindow(approach);
         }
     }
@@ -356,13 +357,6 @@ void IWPlugin::OnWindowClosed(IWWindow* window)
     if (it != windows.end()) {
         windows.erase(it);
     }
-
-    // Remove window reference from approach without setting it to nullptr
-    for (auto& approach : availableApproaches) {
-        if (approach.windowReference == window) {
-            approach.windowReference = nullptr;
-        }
-    }
 }
 
 bool IWPlugin::OnCompileCommand(const char* sCommandLine)
@@ -390,9 +384,7 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 
     if (it != this->availableApproaches.end()) {
         // Approach found: Open the approach window
-        if (it->windowReference == nullptr) {
-            this->OpenNewWindow(&(*it));
-        }
+        this->OpenNewWindow(&(*it));
         return true; // Command handled
     }
     else {

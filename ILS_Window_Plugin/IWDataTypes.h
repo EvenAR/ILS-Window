@@ -40,7 +40,6 @@ struct IWApproachDefinition {
     int defaultRange;
     float maxOffsetLeft;
     float maxOffsetRight;
-    IWWindow* windowReference = nullptr;
 };
 
 enum IWTagMode {

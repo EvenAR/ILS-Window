@@ -3,6 +3,7 @@
 #include "IWDataTypes.h"
 #include "IWTitleBar.h"
 #include <set>
+#include <mutex>
 
 #define IDC_CLOSE_BUTTON 1001
 #define IDC_TOPBAR       1002
@@ -57,7 +58,8 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         IWWindow(IWApproachDefinition approachData, IWStyling styling);
         virtual ~IWWindow();
         void SetListener(IIWWndEventListener* listener);
-        std::string GetSelectedApproach(IWApproachDefinition& approach);
+        std::string GetActiveApproachName() const;
+        void SetActiveApproach(const IWApproachDefinition& approachData);
 
     private:
         IWTitleBar titleBar;
@@ -103,4 +105,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         // For handling events from the title bar
         void OnResizeStart() override;
         void OnCloseButtonClicked() override;
+
+        // For thread safety between EuroScope and the window thread
+        mutable std::mutex approachDataMutex;
 };
