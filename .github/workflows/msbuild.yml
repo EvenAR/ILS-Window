@@ -10,7 +10,7 @@ env:
   SOLUTION_FILE_PATH: .
   BUILD_CONFIGURATION: Release
   PLATFORM: x86
-  VERSION: GA-${{ github.run_number }} # Dynamic version based on run number
+  VERSION: gha-build-${{ github.run_number }} # Dynamic version based on run number
 
 permissions:
   contents: read
@@ -22,12 +22,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Get Repository Contributors
+      id: contributors
+      run: |
+        CONTRIBUTORS=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
+        echo "CONTRIBUTORS=$CONTRIBUTORS" >> $GITHUB_ENV
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion="${{env.VERSION}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion="${{env.VERSION}}" /p:Contributors="${{env.CONTRIBUTORS}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v3
