@@ -25,11 +25,6 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Generate Version File
-      run: |
-        echo "[assembly: System.Reflection.AssemblyVersion(\"${{env.VERSION}}\")] > Properties/AssemblyInfo.cs
-        echo "[assembly: System.Reflection.AssemblyFileVersion(\"${{env.VERSION}}\")] >> Properties/AssemblyInfo.cs
-
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Version=${{env.VERSION}} ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
