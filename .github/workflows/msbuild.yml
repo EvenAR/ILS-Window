@@ -1,4 +1,4 @@
-name: Automatic Build
+name: Automatic build
 
 on:
   push:
@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Decide version
       shell: bash
