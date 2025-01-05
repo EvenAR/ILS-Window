@@ -27,7 +27,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PLUGIN_VERSION=${{env.VERSION}} ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PLUGIN_VERSION="${{env.VERSION}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v3
