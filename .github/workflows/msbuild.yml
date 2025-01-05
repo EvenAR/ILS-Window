@@ -24,7 +24,7 @@ jobs:
     - name: Generate version based on SHA
       shell: bash
       run: |
-        VERSION=gha-dev-$(git rev-parse --short HEAD)
+        VERSION=$(git rev-parse --short HEAD)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Get Repository Contributors
@@ -43,7 +43,7 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.VERSION }}
+        name: ILS_Window_Plugin-${{ env.VERSION }}
         path: |
           Release/*.dll
           Release/*.json
