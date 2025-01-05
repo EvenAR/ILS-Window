@@ -481,13 +481,14 @@ bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoi
     double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
     double directionToThreshold = CalculateBearing(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
     double angleDiff = (selectedApproach.localizerCourse - directionToThreshold) / 180.0 * PI; // anglediff in radians
-    double heightAboveThreshold = position.pressureCorrectedAltitude - selectedApproach.thresholdAltitude;
+    double heightAboveThreshold = position.trueAltitude - selectedApproach.thresholdAltitude;
 
-    if (applyTemperatureCorrection) {
+    auto airportTemperature = m_latestLiveData.airportTemperatures.find(selectedApproach.airport);
+    if (applyTemperatureCorrection && airportTemperature != m_latestLiveData.airportTemperatures.end()) {
         // In newer flight simulators true altitude is affected by the temperature.
         // In cold weather aircraft will be shown higher than they actually are, unless we correct for it.
         // See: https://forums.flightsimulator.com/t/vatsim-ivao-pilotedge-users-be-aware-of-an-important-bug/426142/468
-        int temperatureCorrection = CalculateTemperatureCorrection(position.pressureCorrectedAltitude, selectedApproach.thresholdAltitude, m_latestLiveData.airportTemperatures[selectedApproach.airport]);
+        int temperatureCorrection = CalculateTemperatureCorrection(position.trueAltitude, selectedApproach.thresholdAltitude, airportTemperature->second);
         heightAboveThreshold -= temperatureCorrection;
     }
 
@@ -628,10 +629,18 @@ void IWWindow::CreatePopupMenu(CPoint point)
         MENU_ITEM_SHOW_LABELS,
         _T("Show labels by default")
     );
+
+    auto airportTemperature = m_latestLiveData.airportTemperatures.find(selectedApproach.airport);
+    auto airportTemperatureMenuText =
+        "Apply temperature correction (" 
+        + selectedApproach.airport + ": " 
+        + (airportTemperature != m_latestLiveData.airportTemperatures.end() ? std::to_string(airportTemperature->second) + "°C" : "N/A") 
+        + ")";
+
     menu.AppendMenu(
         MF_STRING | (this->applyTemperatureCorrection ? MF_CHECKED : MF_UNCHECKED),
         MENU_ITEM_CORRECT_FOR_TEMPERATURE,
-        _T("Apply temperature correction")
+        _T(airportTemperatureMenuText.c_str())
     );
     menu.AppendMenu(
         MF_STRING,

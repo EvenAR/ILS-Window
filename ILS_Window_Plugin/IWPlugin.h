@@ -22,7 +22,7 @@ private:
     IWStyling windowStyling;
     IWBehaviourSettings behaviourSettings;
     std::map<std::string, CRect> savedWindowPositions;
-    std::map<std::string, float> airportTemperatures;
+    std::map<std::string, int> airportTemperatures;
 
     void OpenNewWindow(IWApproachDefinition* approach);
     void SyncWithActiveRunways();

@@ -12,7 +12,7 @@ struct RGB {
 };
 
 struct IWTargetPosition {
-    int pressureCorrectedAltitude;
+    int trueAltitude;
     double latitude;
     double longitude;
 };
@@ -27,7 +27,7 @@ struct IWRadarTarget {
 
 struct IWLiveData {
     std::vector<IWRadarTarget> radarTargets;
-    std::map<std::string, float> airportTemperatures;
+    std::map<std::string, int> airportTemperatures;
 };
 
 struct IWApproachDefinition {
