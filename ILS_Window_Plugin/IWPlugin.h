@@ -7,7 +7,11 @@
 #include <map>
 
 #define WINDOW_CLASS_NAME _T("IWWindow")
-#define PLUGIN_NAME "ILS Window Plugin"
+
+#define MY_PLUGIN_NAME          "ILS Window Plugin"
+#define MY_PLUGIN_VERSION       PLUGIN_VERSION
+#define MY_PLUGIN_DEVELOPER     "Even Rognlien"
+#define MY_PLUGIN_COPYRIGHT     "GPL v3"
 
 class IWPlugin : public EuroScopePlugIn::CPlugIn, IIWWndEventListener {
 private:

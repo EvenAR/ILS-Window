@@ -7,13 +7,8 @@
 
 using json = nlohmann::json;
 
-IWPlugin::IWPlugin(void) : CPlugIn(
-    EuroScopePlugIn::COMPATIBILITY_CODE,
-    "ILS Window",
-    PLUGIN_VERSION,
-    "https://tinyurl.com/euroscopepar",
-    "Open source"
-) {
+IWPlugin::IWPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT) {
+
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
     
     // Read configuration file
@@ -468,5 +463,5 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 
 void IWPlugin::ShowErrorMessage(std::string consequence, std::string details)
 {
-    this->DisplayUserMessage(PLUGIN_NAME, consequence.c_str(), details.c_str(), false, true, false, true, false);
+    this->DisplayUserMessage(MY_PLUGIN_NAME, consequence.c_str(), details.c_str(), false, true, false, true, false);
 }
