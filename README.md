@@ -4,7 +4,7 @@ Inspired by the Norwegian Air Traffic Control System (NATCON).
 
 ## Installation and use
 
-1. Download the latest release from the [Releases](here) page.
+1. Download the latest release from the [Releases](https://github.com/EvenAR/ILS-Window/releases) page.
 2. Place the DLL and JSON file in the same directory.
 3. Load the plugin in EuroScope.
 
