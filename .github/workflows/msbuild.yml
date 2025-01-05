@@ -10,7 +10,6 @@ env:
   SOLUTION_FILE_PATH: .
   BUILD_CONFIGURATION: Release
   PLATFORM: x86
-  VERSION: gha-dev-${{ github.sha }}
 
 permissions:
   contents: read
@@ -21,6 +20,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Generate version based on SHA
+      shell: bash
+      run: |
+        VERSION="gha-dev-$(git rev-parse --short HEAD)"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Get Repository Contributors
       shell: bash
@@ -33,7 +38,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion="${{env.VERSION}}" /p:Contributors="${{env.CONTRIBUTORS}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion=${{env.VERSION}} /p:Contributors="${{env.CONTRIBUTORS}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
