@@ -81,6 +81,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
 
         double CalculateDistance(double lat1, double lon1, double lat2, double lon2);
         double CalculateBearing(double lat1, double lon1, double lat2, double lon2);
+        double CalculateTemperatureCorrection(int planePressAlt, int airportPressureAlt, double surfTemp);
 
         COLORREF rangeStatusTextColor;
         COLORREF windowBackground;
@@ -99,6 +100,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
 
         int approachLength;
         bool leftToRight;
+        bool applyTemperatureCorrection = true;
 
         // Dimentions
         float approachHeightFt;

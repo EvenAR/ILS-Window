@@ -143,6 +143,7 @@ void IWPlugin::OnTimer(int seconds)
                 aircraftWtc,
                 positionHistory
             });
+            liveData.airportTemperatures = airportTemperatures;
         }
     }
 
@@ -156,6 +157,23 @@ void IWPlugin::OnAirportRunwayActivityChanged()
     SyncWithActiveRunways();
 }
 
+void IWPlugin::OnNewMetarReceived(const char* sStation, const char* sFullMetar)
+{
+    // Extract temperature from METAR to be used for altitude correction
+    std::string station = std::string(sStation);
+    std::string fullMetar = std::string(sFullMetar);
+    std::regex temperatureRegex(R"((M?\d{2})\/(M?\d{2}))");
+    std::smatch temperatureMatch;
+    if (std::regex_search(fullMetar, temperatureMatch, temperatureRegex)) {
+        std::string temperatureString = temperatureMatch[1];
+        bool isNegative = temperatureString[0] == 'M';
+        int temperature = std::stoi(temperatureString.substr(1));
+        if (isNegative) {
+            temperature = -temperature;
+        }
+        airportTemperatures[station] = temperature;
+    }
+}
 
 void IWPlugin::SyncWithActiveRunways()
 {

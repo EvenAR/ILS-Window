@@ -4,10 +4,11 @@
 
 #define MAX_PROCEDURES 100
 
-#define MENU_ITEM_FLIP                  10000
-#define MENU_ITEM_SHOW_LABELS           10001
-#define MENU_ITEM_PROCEDURES_SEL_START  20000
-#define MENU_ITEM_PROCEDURES_NEW_START  30000
+#define MENU_ITEM_FLIP                      10000
+#define MENU_ITEM_SHOW_LABELS               10001
+#define MENU_ITEM_CORRECT_FOR_TEMPERATURE   10002
+#define MENU_ITEM_PROCEDURES_SEL_START      20000
+#define MENU_ITEM_PROCEDURES_NEW_START      30000
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_PAINT()
@@ -28,6 +29,7 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_MESSAGE(WM_EXITSIZEMOVE, &IWWindow::OnExitSizeMove)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_CORRECT_FOR_TEMPERATURE, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
@@ -476,10 +478,18 @@ void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
 bool IWWindow::CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView)
 {
     // Calculate position relative to the runway
-    double heightAboveThreshold = position.trueAltitude - selectedApproach.thresholdAltitude;
     double distanceToThreshold = CalculateDistance(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
     double directionToThreshold = CalculateBearing(position.latitude, position.longitude, selectedApproach.thresholdLatitude, selectedApproach.thresholdLongitude);
     double angleDiff = (selectedApproach.localizerCourse - directionToThreshold) / 180.0 * PI; // anglediff in radians
+    double heightAboveThreshold = position.pressureCorrectedAltitude - selectedApproach.thresholdAltitude;
+
+    if (applyTemperatureCorrection) {
+        // In newer flight simulators true altitude is affected by the temperature.
+        // In cold weather aircraft will be shown higher than they actually are, unless we correct for it.
+        // See: https://forums.flightsimulator.com/t/vatsim-ivao-pilotedge-users-be-aware-of-an-important-bug/426142/468
+        int temperatureCorrection = CalculateTemperatureCorrection(position.pressureCorrectedAltitude, selectedApproach.thresholdAltitude, m_latestLiveData.airportTemperatures[selectedApproach.airport]);
+        heightAboveThreshold -= temperatureCorrection;
+    }
 
     double projectedDistanceFromThreshold = distanceToThreshold * cos(angleDiff);
     double projectedDistanceFromExtendedCenterline = distanceToThreshold * tan(angleDiff);
@@ -559,6 +569,13 @@ double IWWindow::CalculateBearing(double lat1, double lon1, double lat2, double 
     return bearing * 180.0 / PI;
 }
 
+double IWWindow::CalculateTemperatureCorrection(int planePressAlt, int airportPressureAlt, double surfTemp) {
+    double isaDeviation = surfTemp - 15;
+
+    // Formula is from here: https://www.pprune.org/tech-log/573002-accurate-temperature-correction-formula.html
+    return ((-isaDeviation / -0.0019812) * std::log(1 + (-0.0019812 * planePressAlt) / (288.15 + -0.0019812 * airportPressureAlt)));
+}
+
 std::string IWWindow::GetActiveApproachName() const
 {
     std::lock_guard<std::mutex> lock(approachDataMutex);
@@ -612,6 +629,11 @@ void IWWindow::CreatePopupMenu(CPoint point)
         _T("Show labels by default")
     );
     menu.AppendMenu(
+        MF_STRING | (this->applyTemperatureCorrection ? MF_CHECKED : MF_UNCHECKED),
+        MENU_ITEM_CORRECT_FOR_TEMPERATURE,
+        _T("Apply temperature correction")
+    );
+    menu.AppendMenu(
         MF_STRING,
         MENU_ITEM_FLIP,
         _T("Change orientation")
@@ -619,6 +641,7 @@ void IWWindow::CreatePopupMenu(CPoint point)
 
     // Display the menu
     menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+    
 }
 
 BOOL IWWindow::OnMenuOptionSelected(UINT nID)
@@ -632,6 +655,11 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
     else if (nID == MENU_ITEM_SHOW_LABELS)
     {
         this->showTagsByDefault = !this->showTagsByDefault;
+        Invalidate();
+    }
+    else if (nID == MENU_ITEM_CORRECT_FOR_TEMPERATURE)
+    {
+        this->applyTemperatureCorrection = !this->applyTemperatureCorrection;
         Invalidate();
     }
     return TRUE;

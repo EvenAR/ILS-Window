@@ -22,6 +22,7 @@ private:
     IWStyling windowStyling;
     IWBehaviourSettings behaviourSettings;
     std::map<std::string, CRect> savedWindowPositions;
+    std::map<std::string, float> airportTemperatures;
 
     void OpenNewWindow(IWApproachDefinition* approach);
     void SyncWithActiveRunways();
@@ -34,6 +35,7 @@ private:
     bool OnCompileCommand(const char* sCommandLine) override;
     void OnTimer(int seconds) override;
     void OnAirportRunwayActivityChanged() override;
+    void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
 
     // Events from a window
     void OnWindowClosed(IWWindow* window) override;
