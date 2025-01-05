@@ -10,7 +10,7 @@ using json = nlohmann::json;
 IWPlugin::IWPlugin(void) : CPlugIn(
     EuroScopePlugIn::COMPATIBILITY_CODE,
     "ILS Window",
-    "1.0.0",
+    PLUGIN_VERSION,
     "https://tinyurl.com/euroscopepar",
     "Open source"
 ) {
