@@ -21,10 +21,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Generate version based on SHA
+    - name: Decide version
       shell: bash
       run: |
-        VERSION=$(git rev-parse --short HEAD)
+        LATEST_TAG=$(git describe --tags --abbrev=0)
+        CURRENT_SHA=$(git rev-parse --short HEAD)
+        if [[ $(git rev-list $LATEST_TAG..HEAD --count) -gt 0 ]]; then
+          VERSION="${LATEST_TAG}-${CURRENT_SHA}"
+        else
+          VERSION="${LATEST_TAG}"
+        fi
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Get Repository Contributors
