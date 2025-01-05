@@ -40,5 +40,5 @@ jobs:
       with:
         name: ${{ env.VERSION }}
         path: |
-          Release/ILS_Window_Plugin.dll
-          Sample config/ILS_Window_Plugin-config.json
+          Release/*.dll
+          Release/*.json
