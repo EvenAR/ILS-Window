@@ -201,5 +201,5 @@ SectorFileProviderDescriptor.txt
 euroscope_sector_providers.txt
 ipaddr.txt
 version.txt
-*.vcxproj
+*.vcxproj.user
 .sentry-native
