@@ -12,7 +12,7 @@ IWPlugin::IWPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGI
     AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
     
     // Read configuration file
-    std::string jsonFilePath = GetPluginDirectory() + "//ILS-window.json";
+    std::string jsonFilePath = GetPluginDirectory() + "\\" + CONFIG_FILE_NAME;
     availableApproaches = ReadApproachDefinitions(jsonFilePath);
     windowStyling = ReadStyling(jsonFilePath);
     behaviourSettings = ReadBehaviourSettings(jsonFilePath);

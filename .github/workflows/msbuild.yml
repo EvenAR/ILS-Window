@@ -41,4 +41,4 @@ jobs:
         name: build-artifacts
         path: |
           Release/*.dll
-          Release/*.json
+          Sample config/*.json

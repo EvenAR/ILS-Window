@@ -13,6 +13,8 @@
 #define MY_PLUGIN_DEVELOPER     CONTRIBUTORS
 #define MY_PLUGIN_COPYRIGHT     "GPL v3"
 
+#define CONFIG_FILE_NAME        "ILS_window_plugin-config.json"
+
 class IWPlugin : public EuroScopePlugIn::CPlugIn, IIWWndEventListener {
 private:
     std::vector<IWWindow*> windows;
