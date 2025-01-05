@@ -1,10 +1,16 @@
-name: Automatic Build
+name: Build or release
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: false
+        default: ''
 
 env:
   SOLUTION_FILE_PATH: .
@@ -12,7 +18,7 @@ env:
   PLATFORM: x86
 
 permissions:
-  contents: read
+  contents: write  # Required for creating releases
 
 jobs:
   build:
@@ -21,11 +27,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Generate version based on SHA
+    # Determine version: use the provided version or fallback to the commit SHA
+    - name: Set version
       shell: bash
       run: |
-        VERSION=$(git rev-parse --short HEAD)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        if [ -z "${{ github.event.inputs.version }}" ]; then
+          # No version provided, use previous tag + SHA or fallback
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          VERSION=$(echo $TAG | sed 's/^v//')  # Remove 'v' if the tag starts with it
+          VERSION="${VERSION}-$(git rev-parse --short HEAD)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        else
+          # Use the provided version
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+        fi
 
     - name: Get Repository Contributors
       shell: bash
@@ -47,3 +62,24 @@ jobs:
         path: |
           Release/*.dll
           Release/*.json
+
+    # Create a GitHub release if a version is provided
+    - name: Create a Tag
+      shell: bash
+      if: ${{ github.event.inputs.version }}
+      run: |
+        git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
+        git push origin "v${{ env.VERSION }}"
+      env:
+        VERSION: ${{ env.VERSION }}
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: ${{ github.event.inputs.version }}
+      with:
+        tag_name: "v${{ env.VERSION }}"
+        files: |
+          Release/*.dll
+          Release/*.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
