@@ -70,12 +70,12 @@ jobs:
       id: download-artifact
       uses: dawidd6/action-download-artifact@v7
       with:
-        run_id: ${{ github.event.workflow_run.id }}
-        path: plugin-artifacts
+        path: downloads
+        skip_unpack: true
 
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         tag: ${{ github.ref }}
-        file: plugin-artifacts/**/*
+        file: downloads/*.zip
         file_glob: true
