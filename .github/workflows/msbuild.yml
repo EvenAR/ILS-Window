@@ -1,12 +1,10 @@
-name: Automatic build
+name: Build Workflow
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-  release:
-    types: [created]  # Trigger when a new release is created
 
 env:
   SOLUTION_FILE_PATH: .
@@ -59,23 +57,3 @@ jobs:
         path: |
           Release/*.dll
           Release/*.json
-
-  upload_release:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'release'  # Only runs when a release is created
-
-    steps:
-    - name: Download Build Artifacts from Build Job
-      id: download-artifact
-      uses: dawidd6/action-download-artifact@v7
-      with:
-        path: downloads
-        skip_unpack: true
-
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        tag: ${{ github.ref }}
-        file: downloads/*.zip
-        file_glob: true
