@@ -1,4 +1,4 @@
-name: Upload Release
+name: Upload release
 
 on:
   workflow_run:
