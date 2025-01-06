@@ -1,0 +1,43 @@
+
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  SOLUTION_FILE_PATH: .
+  BUILD_CONFIGURATION: Release
+  PLATFORM: x86
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Decide version
+      shell: bash
+      run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion="${{env.VERSION}}" /p:Contributors="TBD" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ILS_Window_Plugin-${{ env.VERSION }}
+        path: |
+          Release/*.dll
+          Release/*.json

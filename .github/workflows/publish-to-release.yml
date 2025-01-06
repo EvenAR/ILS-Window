@@ -1,16 +1,10 @@
-name: Build artifacts
+
+name: Publish
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-  workflow_dispatch:
-    inputs:
-      build_target:
-        description: "Target branch or tag to build"
-        required: false
-        default: "master"
+    tags:
+      - '*'
 
 env:
   SOLUTION_FILE_PATH: .
@@ -28,27 +22,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Decide version
       shell: bash
-      run: |
-        LATEST_TAG=$(git describe --tags --abbrev=0)
-        CURRENT_SHA=$(git rev-parse --short HEAD)
-        if [[ $(git rev-list $LATEST_TAG..HEAD --count) -gt 0 ]]; then
-          VERSION="${LATEST_TAG}-${CURRENT_SHA}"
-        else
-          VERSION="${LATEST_TAG}"
-        fi
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+      run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
     - name: Get Repository Contributors
       shell: bash
       run: |
         CONTRIBUTORS=$(curl "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
         echo "CONTRIBUTORS=$CONTRIBUTORS" >> $GITHUB_ENV
-
+      
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
@@ -56,10 +40,12 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:PluginVersion="${{env.VERSION}}" /p:Contributors="${{env.CONTRIBUTORS}}" ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{env.PLATFORM}}
 
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
+    - name: Zip the build artifacts
+      run: |
+        powershell -Command Compress-Archive -Path "Release\*.json","Release\*.dll" -DestinationPath ILS_Window_Plugin-${{ env.VERSION }}.zip
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        name: ILS_Window_Plugin-${{ env.VERSION }}
-        path: |
-          Release/*.dll
-          Release/*.json
+        file: ILS_Window_Plugin-${{ env.VERSION }}.zip
+        tag: ${{ github.ref }}
