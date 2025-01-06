@@ -447,17 +447,17 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 {
     const std::string generalError = "Could not open ILS window";
     const std::string command(sCommandLine);
-    const std::string prefix = ".par ";
+    const std::string prefix = ".ils ";
 
-    if (command.rfind(prefix, 0) != 0) { // Command must start with ".par "
+    if (command.rfind(prefix, 0) != 0) { // Command must start with ".ils "
         return false; // Not handled
     }
 
-    // Extract the argument after ".par "
+    // Extract the argument after ".ils "
     std::string argument = stringToUpper(trimString(command.substr(prefix.length())));
 
     if (argument.empty()) {
-        this->ShowErrorMessage(generalError, "No approach name specified after '.par'.");
+        this->ShowErrorMessage(generalError, "No approach name specified after '.ils'.");
         return false;
     }
 
