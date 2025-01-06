@@ -1,12 +1,16 @@
-name: Automatic build
+name: Build artifacts
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
   release:
-    types: [created]  # Trigger when a new release is created
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      build_target:
+        description: "Target branch or tag to build"
+        required: false
+        default: "master"
 
 env:
   SOLUTION_FILE_PATH: .
@@ -42,7 +46,7 @@ jobs:
     - name: Get Repository Contributors
       shell: bash
       run: |
-        CONTRIBUTORS=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
+        CONTRIBUTORS=$(curl "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
         echo "CONTRIBUTORS=$CONTRIBUTORS" >> $GITHUB_ENV
 
     - name: Add MSBuild to PATH
@@ -59,23 +63,3 @@ jobs:
         path: |
           Release/*.dll
           Release/*.json
-
-  upload_release:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'release'  # Only runs when a release is created
-
-    steps:
-    - name: Download Build Artifacts from Build Job
-      id: download-artifact
-      uses: dawidd6/action-download-artifact@v7
-      with:
-        path: downloads
-        skip_unpack: true
-
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        tag: ${{ github.ref }}
-        file: downloads/*.zip
-        file_glob: true

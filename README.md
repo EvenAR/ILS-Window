@@ -1,6 +1,7 @@
 # ILS window plugin for EuroScope
 
-Inspired by the Norwegian Air Traffic Control System (NATCON).
+Shows aircraft position relative to the ILS.
+
 
 ## Installation and use
 
@@ -8,7 +9,7 @@ Inspired by the Norwegian Air Traffic Control System (NATCON).
 2. Place the DLL and JSON file in the same directory.
 3. Load the plugin in EuroScope.
 
-By default the plugin will automatically open ILS windows based on the active arrival runways. It's also possible to open windows manually using `.par <title>` (where `<title>` refers to the `"title"` in the configuration file)
+By default the plugin will automatically open ILS windows based on the active arrival runways. It's also possible to open windows manually using `.ils <title>` (where `<title>` refers to the `"title"` in the configuration file).
 
 ## Configuration
 
@@ -17,4 +18,9 @@ The plugin reads the JSON configuration file when the plugin is loaded. For deta
 - `localizerCourse` must be the **true** heading in degrees
 - `maxOffsetLeft` and `maxOffsetRight` is used to specify the maximum visible range (in nautical miles) left and right of the localizer. Most relevant for airports with paralell approaches.
 
+
+## Screenshot
+
 ![image](https://github.com/user-attachments/assets/49e513da-1fa5-4483-8823-f557a293c05a)
+
+The design is inspired by the Norwegian Air Traffic Control System (NATCON).
