@@ -1,8 +1,8 @@
-name: Upload release
+name: Upload artifacts to release
 
 on:
   workflow_run:
-    workflows: ["Build Workflow"]
+    workflows: ["Build artifacts"]
     types:
       - completed
 
