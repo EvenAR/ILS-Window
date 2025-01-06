@@ -21,6 +21,6 @@ The plugin reads the JSON configuration file when the plugin is loaded. For deta
 
 ## Screenshot
 
-Inspired by the Norwegian Air Traffic Control System (NATCON).
-
 ![image](https://github.com/user-attachments/assets/49e513da-1fa5-4483-8823-f557a293c05a)
+
+The design is inspired by the Norwegian Air Traffic Control System (NATCON).

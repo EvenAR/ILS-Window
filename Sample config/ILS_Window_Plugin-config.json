@@ -28,7 +28,7 @@
             "thresholdAltitude": 657,
             "thresholdLatitude": 60.18463723,
             "thresholdLongitude": 11.0734543,
-            "maxOffsetLeft": 10,
+            "maxOffsetLeft": 3,
             "maxOffsetRight": 0.8
         },
         {
@@ -42,7 +42,7 @@
             "thresholdLatitude": 60.17621990,
             "thresholdLongitude": 11.1080420,
             "maxOffsetLeft": 0.8,
-            "maxOffsetRight": 10
+            "maxOffsetRight": 3
         },
         {
             "title": "GM19L",
@@ -54,7 +54,7 @@
             "thresholdAltitude": 676,
             "thresholdLatitude": 60.20101438,
             "thresholdLongitude": 11.1222507,
-            "maxOffsetLeft": 10,
+            "maxOffsetLeft": 3,
             "maxOffsetRight": 0.8
         },
         {
@@ -68,7 +68,7 @@
             "thresholdLatitude": 60.21552672,
             "thresholdLongitude": 11.0912237,
             "maxOffsetLeft": 0.8,
-            "maxOffsetRight": 10
+            "maxOffsetRight": 3
         }
     ]
 }
