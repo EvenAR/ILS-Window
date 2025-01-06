@@ -585,13 +585,16 @@ std::string IWWindow::GetActiveApproachName() const
 
 void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 {
-    std::lock_guard<std::mutex> lock(approachDataMutex);
+    std::unique_lock<std::mutex> lock(approachDataMutex);
     this->selectedApproach = selectedApproach;
     this->approachLength = selectedApproach.defaultRange;
     this->leftToRight = selectedApproach.localizerCourse > 0 && selectedApproach.localizerCourse < 180;
     this->titleBar.SetTitle(selectedApproach.title);
     UpdateDimentions();
     Invalidate();
+    lock.unlock();
+
+    m_listener->OnWindowRectangleChanged(this);
 }
 
 void IWWindow::CreatePopupMenu(CPoint point)

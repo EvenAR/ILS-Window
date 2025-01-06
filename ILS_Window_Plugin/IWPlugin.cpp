@@ -419,6 +419,8 @@ void IWPlugin::OnWindowRectangleChanged(IWWindow* window)
     std::string description = name + " pos.";
     std::string rect = std::to_string(windowRect.left) + "," + std::to_string(windowRect.top) + "," + std::to_string(windowRect.right) + "," + std::to_string(windowRect.bottom);
     SaveDataToSettings(name.c_str(), description.c_str(), rect.c_str());
+
+    savedWindowPositions[name] = windowRect;
 }
 
 void IWPlugin::LoadSavedWindowPositions()
