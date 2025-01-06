@@ -42,7 +42,7 @@ jobs:
     - name: Get Repository Contributors
       shell: bash
       run: |
-        CONTRIBUTORS=$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
+        CONTRIBUTORS=$(curl "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | jq -r '.[].login' | paste -sd, -)
         echo "CONTRIBUTORS=$CONTRIBUTORS" >> $GITHUB_ENV
 
     - name: Add MSBuild to PATH
