@@ -5,6 +5,12 @@ on:
     branches: [ "master" ]
   release:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      build_target:
+        description: "Target branch or tag to build"
+        required: false
+        default: "master"
 
 env:
   SOLUTION_FILE_PATH: .
