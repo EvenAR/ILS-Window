@@ -11,7 +11,7 @@ Shows aircraft position relative to the ILS.
 By default the plugin will automatically open ILS windows based on the active arrival runways. It's also possible to open windows manually using `.ils <title>` (where `<title>` refers to the `"title"` in the configuration file).
 
 > [!NOTE]
-> **Limitation**: This plugin uses the altitude reported by the pilot clients. Depending on the pilot's weather settings and the flight simulator they are using, the height displayed in the ILS Window may not match what the pilot sees (read why [here](https://forums.flightsimulator.com/t/vatsim-ivao-pilotedge-users-be-aware-of-an-important-bug/426142/468)).
+> **Limitation**: This plugin uses the altitude reported by the pilot clients. Depending on the pilot's weather settings and the flight simulator they are using, the height displayed in the ILS Window may not match what the pilot sees ([more info](https://forums.flightsimulator.com/t/vatsim-ivao-pilotedge-users-be-aware-of-an-important-bug/426142)).
 
 ## Configuration
 
