@@ -1,9 +1,6 @@
 #pragma once
 #include <afxwin.h>
 #include <string>
-#include "IWCloseBtn.h"
-#include "IWMenuBtn.h"
-#include "IWResizeBtn.h"
 
 #define IDC_CLOSE_BUTTON 1001
 #define IDC_MENU_BUTTON 1002
@@ -16,40 +13,39 @@ public:
     virtual void OnMenuButtonClicked() = 0;
 };
 
-class IWTitleBar : public CStatic {
+class IWTitleBarBtn;
+
+class IWTitleBar : public CStatic
+{
     DECLARE_DYNAMIC(IWTitleBar)
+    DECLARE_MESSAGE_MAP()
 
-    public:
-        IWTitleBar(
-            std::string title,
-            COLORREF backgroundColor,
-            COLORREF textColor, 
-            IWTitleBarEventListener* listener
-        );
-        virtual ~IWTitleBar() {}
+public:
+    IWTitleBar(std::string title, COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener);
+    BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
+    void SetTitle(const std::string& title) { this->text = title; }
 
-        // Initialize the top bar
-        BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
+    virtual ~IWTitleBar() {}
 
-        void SetTitle(const std::string& title) { this->text = title; }
+protected:
+    virtual void PositionButtons(const CRect& rect) {};
+    virtual void DrawTitle(CDC* pdc, CRect rect) {};
 
-    private: 
-        IWCloseBtn closeButton;
-        IWMenuBtn menuButton;
-        IWResizeBtn resizeButton;
-        CFont font;
+    IWTitleBarBtn* menuButton;
+    IWTitleBarBtn* closeButton;
+    IWTitleBarBtn* resizeButton;
 
-        COLORREF backgroundColor;
-        COLORREF textColor;
-        std::string text;
-        IWTitleBarEventListener* eventListener;
+    std::string text;
+    CFont font;
 
-        afx_msg void OnPaint();
-        afx_msg void OnCloseButtonClicked();
-        afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-        afx_msg void OnSize(UINT nType, int cx, int cy);
+private:
+    COLORREF backgroundColor;
+    IWTitleBarEventListener* eventListener;
 
-        void PositionButtons(const CRect& rect);
-
-        DECLARE_MESSAGE_MAP()
+    afx_msg void OnPaint();
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnCloseButtonClicked();
+    afx_msg void OnMenuButtonClicked();
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 };
+

@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "IWWindow.h"
 #include <cmath>
+#include "RenderUtils.h"
+#include "IWX11TitleBar.h"
+#include "IWCdeTitleBar.h"
 
 #define MAX_PROCEDURES 100
 
@@ -11,6 +14,9 @@
 #define MENU_ITEM_PROCEDURES_NEW_START      30000
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
+    ON_WM_LBUTTONDOWN()
+    ON_WM_MOUSEMOVE()
+    ON_WM_SETCURSOR()
     ON_WM_PAINT()
     ON_WM_CREATE()
     ON_WM_SIZE()
@@ -29,25 +35,24 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
 
-IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling) : titleBar(
-    selectedApproach.title,
-    RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
-    RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
-    this
-), ilsVisualization(selectedApproach, styling, &this->font)
+IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int titleBarHeight, int windowBorderThickness, int windowOuterBorderThickness)
+    : ilsVisualization(selectedApproach, styling, &this->font)
+    , TITLE_BAR_HEIGHT(titleBarHeight)
+    , WINDOW_BORDER_THICKNESS(windowBorderThickness)
+    , WINDOW_OUTER_BORDER_WIDTH(windowOuterBorderThickness)
+    , textColor(RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b))
+    , windowBorderColor(RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b))
+    , windowOuterBorderColor(RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b))
 {
-    this->selectedApproach = selectedApproach;
-
-    this->windowBorderColor = RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b);
-    this->windowOuterBorderColor = RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b);
-
     float fontPointsSize = styling.fontSize * 72 / 96;
     this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
+
+    this->selectedApproach = selectedApproach;
 }
 
 IWWindow::~IWWindow()
 {
-    this->titleBar.DestroyWindow();
+    this->titleBar->DestroyWindow();
 }
 
 int IWWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -56,7 +61,7 @@ int IWWindow::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
 
     CRect barRect(0, 0, lpCreateStruct->cx, TITLE_BAR_HEIGHT);
-    if (!titleBar.CreateTopBar(this, barRect, IDC_TOPBAR))
+    if (!titleBar->CreateTopBar(this, barRect, IDC_TOPBAR))
     {
         AfxMessageBox(_T("Failed to create top bar"));
         return -1;
@@ -93,6 +98,8 @@ void IWWindow::OnPaint()
     innerRect.InflateRect(-WINDOW_OUTER_BORDER_WIDTH, -WINDOW_OUTER_BORDER_WIDTH);
     memDC.FillSolidRect(innerRect, windowBorderColor);
 
+    DrawBorder(&memDC, rect);
+
     // Copy the buffer to the screen
     dc.BitBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, SRCCOPY);
 
@@ -110,10 +117,10 @@ void IWWindow::OnSize(UINT nType, int cx, int cy)
         Invalidate(); // Mark the entire client area for repaint
     }
 
-    if (titleBar.GetSafeHwnd())
+    if (titleBar->GetSafeHwnd())
     {
-        CRect barRect(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, cx - WINDOW_BORDER_WIDTH, TITLE_BAR_HEIGHT);
-        titleBar.MoveWindow(barRect);
+        CRect barRect(WINDOW_BORDER_THICKNESS, WINDOW_BORDER_THICKNESS, cx - WINDOW_BORDER_THICKNESS, TITLE_BAR_HEIGHT);
+        titleBar->MoveWindow(barRect);
     }
 
     if (ilsVisualization.GetSafeHwnd())
@@ -142,10 +149,33 @@ void IWWindow::OnSizing(UINT nSide, LPRECT lpRect)
     int snappedWidth = static_cast<int>(std::round(width / SIZE_SNAP_INCREMENTS) * SIZE_SNAP_INCREMENTS);
     int snappedHeight = static_cast<int>(std::round(height / SIZE_SNAP_INCREMENTS) * SIZE_SNAP_INCREMENTS);
 
-    // Adjust the RECT based on the resizing side. 
-    // It's always the top right corner in our case
+    // Adjust the RECT based on the resizing side.
     if (nSide == WMSZ_TOPRIGHT) {
         lpRect->top = lpRect->bottom - snappedHeight;
+        lpRect->right = lpRect->left + snappedWidth;
+    }
+    else if (nSide == WMSZ_BOTTOMLEFT) {
+        lpRect->bottom = lpRect->top + snappedHeight;
+        lpRect->left = lpRect->right - snappedWidth;
+    }
+    else if (nSide == WMSZ_BOTTOMRIGHT) {
+        lpRect->bottom = lpRect->top + snappedHeight;
+        lpRect->right = lpRect->left + snappedWidth;
+    }
+    else if (nSide == WMSZ_TOPLEFT) {
+        lpRect->top = lpRect->bottom - snappedHeight;
+        lpRect->left = lpRect->right - snappedWidth;
+    }
+    else if (nSide == WMSZ_TOP) {
+        lpRect->top = lpRect->bottom - snappedHeight;
+    }
+    else if (nSide == WMSZ_BOTTOM) {
+        lpRect->bottom = lpRect->top + snappedHeight;
+    }
+    else if (nSide == WMSZ_LEFT) {
+        lpRect->left = lpRect->right - snappedWidth;
+    }
+    else if (nSide == WMSZ_RIGHT) {
         lpRect->right = lpRect->left + snappedWidth;
     }
 
@@ -190,13 +220,13 @@ CRect IWWindow::GetClientRectBelowTitleBar()
 
     // Adjust rect to exclude the top bar area (assume the top bar is 30 pixels high)
     CRect topBarRect;
-    titleBar.GetWindowRect(&topBarRect);
+    titleBar->GetWindowRect(&topBarRect);
     ScreenToClient(&topBarRect); // Convert to client coordinates
 
     rect.top = topBarRect.bottom; // Move the top to below the top bar
-    rect.left += WINDOW_BORDER_WIDTH;
-    rect.right -= WINDOW_BORDER_WIDTH;
-    rect.bottom -= WINDOW_BORDER_WIDTH;
+    rect.left += WINDOW_BORDER_THICKNESS;
+    rect.right -= WINDOW_BORDER_THICKNESS;
+    rect.bottom -= WINDOW_BORDER_THICKNESS;
 
     return rect;
 }
@@ -243,6 +273,90 @@ void IWWindow::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
     lpMMI->ptMinTrackSize.y = 100; // Minimum height in pixels
 }
 
+void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    bool isTop, isLeft, isRight, isBottom;
+    int cursorPosition = GetEdgeCursorPosition(point);
+
+    if (cursorPosition != HTNOWHERE) {
+        SendMessage(WM_NCLBUTTONDOWN, cursorPosition, MAKELPARAM(point.x, point.y));
+    }
+
+    CWnd::OnLButtonDown(nFlags, point);
+}
+
+void IWWindow::OnMouseMove(UINT nFlags, CPoint point)
+{
+    /*CRect clientRect;
+    GetClientRect(&clientRect);
+ 
+    bool isTop, isLeft, isRight, isBottom;
+    GetEdgeCursorPosition(point, isTop, isLeft, isRight, isBottom);
+
+    if (isTop && isLeft)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENWSE));
+    else if (isTop && isRight)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENESW));
+    else if (isBottom && isLeft)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENESW));
+    else if (isBottom && isRight)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENWSE));
+    else if (isTop || isBottom)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENS));
+    else if (isLeft || isRight)
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEWE));
+    else
+        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+
+    CWnd::OnMouseMove(nFlags, point);*/
+}
+
+BOOL IWWindow::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+    if (nHitTest == HTCLIENT)
+    {
+        // Get the cursor position in screen coordinates
+        POINT cursorPos;
+        GetCursorPos(&cursorPos);
+
+        // Convert the cursor position to client coordinates
+        ScreenToClient(&cursorPos);
+
+        // Check the position of the cursor relative to the window
+        int cursorPosition = GetEdgeCursorPosition(cursorPos);
+
+        if (cursorPosition == HTNOWHERE)
+        {
+            return FALSE; // Prevent the system from overriding the cursor
+        }
+
+        switch (cursorPosition)
+        {
+        case HTTOPLEFT:
+        case HTBOTTOMRIGHT:
+            SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENWSE));
+            break;
+        case HTTOPRIGHT:
+        case HTBOTTOMLEFT:
+            SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENESW));
+            break;
+        case HTTOP:
+        case HTBOTTOM:
+            SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENS));
+            break;
+        case HTLEFT:
+        case HTRIGHT:
+            SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEWE));
+            break;
+        }
+
+        return TRUE; // Prevent the system from overriding the cursor
+    }
+
+    // Default behavior for other non-client areas
+    return CWnd::OnSetCursor(pWnd, nHitTest, message);
+}
+
 std::string IWWindow::GetActiveApproachName() const
 {
     std::lock_guard<std::mutex> lock(approachDataMutex);
@@ -253,7 +367,7 @@ void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 {
     std::unique_lock<std::mutex> lock(approachDataMutex);
     this->selectedApproach = selectedApproach;
-    this->titleBar.SetTitle(selectedApproach.title);
+    this->titleBar->SetTitle(selectedApproach.title);
 
     ilsVisualization.SetActiveApproach(this->selectedApproach);
     Invalidate();

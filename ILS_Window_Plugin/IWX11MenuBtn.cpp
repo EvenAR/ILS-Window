@@ -1,12 +1,12 @@
 #include "pch.h"
-#include "IWMenuBtn.h"
+#include "IWX11MenuBtn.h"
 
-BEGIN_MESSAGE_MAP(IWMenuBtn, CButton)
+BEGIN_MESSAGE_MAP(IWX11MenuBtn, CButton)
     ON_WM_LBUTTONDOWN()
     ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
-void IWMenuBtn::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
     // Calculate the center of the rectangle
     CPoint center = rect.CenterPoint();
@@ -32,7 +32,7 @@ void IWMenuBtn::DrawSymbol(CDC* pDC, CRect rect)
     pDC->SelectObject(oldBrush);
 }
 
-void IWMenuBtn::OnLButtonDown(UINT nFlags, CPoint point)
+void IWX11MenuBtn::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CPoint screenPoint = point;
     ClientToScreen(&screenPoint);
@@ -45,7 +45,7 @@ void IWMenuBtn::OnLButtonDown(UINT nFlags, CPoint point)
     }
 }
 
-BOOL IWMenuBtn::OnEraseBkgnd(CDC* pDC)
+BOOL IWX11MenuBtn::OnEraseBkgnd(CDC* pDC)
 {
     return TRUE;
 }

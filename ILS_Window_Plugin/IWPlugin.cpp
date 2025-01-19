@@ -4,6 +4,8 @@
 #include <fstream>
 #include "IWUtils.h"
 #include <regex>
+#include "IWCdeWindow.h"
+#include "IWX11Window.h"
 
 using json = nlohmann::json;
 
@@ -64,8 +66,15 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
             spawningPoint = CPoint(rect.left + 50, rect.top + 50);
         }
     }
+
+    IWWindow* newWindow = nullptr;
+    if (this->behaviourSettings.windowSimulation == "X11") {
+        newWindow = new IWX11Window(*approach, windowStyling);
+    }
+    else {
+        newWindow = new IWCdeWindow(*approach, windowStyling);
+    }
    
-    IWWindow* newWindow = new IWWindow(*approach, windowStyling);
     auto hwndPopup = newWindow->CreateEx(
         WS_EX_NOACTIVATE | WS_EX_TOPMOST,
         WINDOW_CLASS_NAME,
@@ -376,8 +385,16 @@ IWBehaviourSettings IWPlugin::ReadBehaviourSettings(const std::string& jsonFileP
 
     nlohmann::json jsonObject = jsonData["behaviour"];
 
+    auto readStringWithDefault = [&jsonData, this](const std::string& key, const std::string& defaultValue) -> std::string {
+        if (jsonData.contains("behaviour") && jsonData["behaviour"].contains(key)) {
+            return jsonData["behaviour"][key].get<std::string>();
+        }
+        return defaultValue;
+    };
+
     return IWBehaviourSettings{
-        jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>()
+        jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>(),
+        readStringWithDefault("windowSimulation", "X11")
     };
 }
 
