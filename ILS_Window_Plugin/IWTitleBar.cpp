@@ -10,14 +10,13 @@ BEGIN_MESSAGE_MAP(IWTitleBar, CStatic)
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, COLORREF outerFrameColor, IWTitleBarEventListener* listener)
+IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, IWTitleBarEventListener* listener)
 {
     this->backgroundColor = backgroundColor;
     this->textColor = textColor;
-    this->outerFramePen.CreatePen(PS_SOLID, 1, outerFrameColor);
 
     this->text = title;
-    this->font.CreatePointFont(110, _T("EuroScope"));
+    this->font.CreatePointFont(100, _T("EuroScope"));
     this->eventListener = listener;
 }
 
@@ -54,17 +53,11 @@ void IWTitleBar::OnPaint()
     dc.SetBkMode(TRANSPARENT);  // Transparent background for text
 
     // Draw the text centered in the client area
-    CRect textPosition = rect;
-    textPosition.left += 10;
-
-    dc.DrawText(_T(this->text.c_str()), -1, textPosition, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    CRect titleRect = rect;
+    titleRect.left += 3;
+    dc.DrawText(_T(this->text.c_str()), -1, titleRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
     dc.SelectObject(oldFont);
-
-    dc.SelectStockObject(NULL_BRUSH);
-    dc.SelectObject(this->outerFramePen);
-    rect.bottom += 1; // Make the bottom border invisible
-    dc.Rectangle(rect);
 }
 
 void IWTitleBar::OnCloseButtonClicked()
@@ -118,12 +111,14 @@ void IWTitleBar::OnSize(UINT nType, int cx, int cy)
 void IWTitleBar::PositionButtons(const CRect& rect)
 {
     const int margin = 6;
-    const int btnWidth = 16; // Button width
-    const int btnHeight = 14; // Button width
-    const int top = rect.top + 8;
+    const int btnHeight = rect.Height() - 9;
+    const int btnWidth = btnHeight * 1.2;
+
+    // V center the buttons
+    const int top = (rect.Height() - btnHeight) / 2;
     const int bottom = top + btnHeight;
 
-    int right = rect.right - margin - 3;
+    int right = rect.right - 3;
     int left = right - btnWidth;
 
     // Position the resize button

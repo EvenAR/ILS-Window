@@ -33,7 +33,6 @@ IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling) : t
     selectedApproach.title,
     RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b),
     RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b),
-    RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b),
     this
 ), ilsVisualization(selectedApproach, styling, &this->font)
 {
@@ -113,7 +112,7 @@ void IWWindow::OnSize(UINT nType, int cx, int cy)
 
     if (titleBar.GetSafeHwnd())
     {
-        CRect barRect(0, 0, cx, TITLE_BAR_HEIGHT);
+        CRect barRect(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, cx - WINDOW_BORDER_WIDTH, TITLE_BAR_HEIGHT);
         titleBar.MoveWindow(barRect);
     }
 

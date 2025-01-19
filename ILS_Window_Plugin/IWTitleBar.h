@@ -24,7 +24,6 @@ class IWTitleBar : public CStatic {
             std::string title,
             COLORREF backgroundColor,
             COLORREF textColor, 
-            COLORREF outerFrameColor, 
             IWTitleBarEventListener* listener
         );
         virtual ~IWTitleBar() {}
@@ -42,7 +41,6 @@ class IWTitleBar : public CStatic {
 
         COLORREF backgroundColor;
         COLORREF textColor;
-        CPen outerFramePen;
         std::string text;
         IWTitleBarEventListener* eventListener;
 
