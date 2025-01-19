@@ -42,6 +42,9 @@
     <ClCompile Include="IWResizeBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IWVisualization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ILS_Window_Plugin.def">
@@ -98,6 +101,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IWResizeBtn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IWVisualization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

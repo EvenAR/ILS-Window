@@ -38,7 +38,7 @@ class IWTitleBar : public CStatic {
         IWCloseBtn closeButton;
         IWMenuBtn menuButton;
         IWResizeBtn resizeButton;
-        CFont euroScopeFont;
+        CFont font;
 
         COLORREF backgroundColor;
         COLORREF textColor;

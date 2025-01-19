@@ -17,7 +17,7 @@ IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, COLORREF tex
     this->outerFramePen.CreatePen(PS_SOLID, 1, outerFrameColor);
 
     this->text = title;
-    this->euroScopeFont.CreatePointFont(110, _T("EuroScope"));
+    this->font.CreatePointFont(110, _T("EuroScope"));
     this->eventListener = listener;
 }
 
@@ -44,7 +44,7 @@ void IWTitleBar::OnPaint()
     CRect rect;
     GetClientRect(&rect);  // Get the client area of the control
 
-    auto oldFont = dc.SelectObject(this->euroScopeFont);
+    auto oldFont = dc.SelectObject(this->font);
 
     // Fill the background with your custom color
     dc.FillSolidRect(rect, this->backgroundColor);  // Dark background

@@ -2,6 +2,7 @@
 #include <afxwin.h>
 #include "IWDataTypes.h"
 #include "IWTitleBar.h"
+#include "IWVisualization.h"
 #include <set>
 #include <mutex>
 
@@ -9,22 +10,13 @@
 #define IDC_TOPBAR       1002
 #define WM_UPDATE_DATA (WM_USER + 1)
 
-#define APP_LINE_MARGIN_TOP 0.08
-#define APP_LINE_MARGIN_SIDES 0.08
-#define APP_LINE_MARGIN_BOTTOM 0.35
-#define LABEL_OFFSET 15
-#define TARGET_RADIUS 5
-#define HISTORY_TRAIL_RADIUS 5
-#define PI 3.14159265359
-#define FT_PER_NM 6076.11549
-
 #define TITLE_BAR_HEIGHT 27
 #define SIZE_SNAP_INCREMENTS 20.0
-
-#define EARTH_RADIUS_NM 3440.065
-#define PI 3.14159265359
+#define WINDOW_BORDER_WIDTH 4
+#define WINDOW_OUTER_BORDER_WIDTH 1
 
 class IWWindow;
+
 
 class IIWWndEventListener {
 public:
@@ -46,18 +38,12 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         afx_msg BOOL OnEraseBkgnd(CDC* pDC);
         afx_msg BOOL OnNcActivate(BOOL bActive);
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
-        afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-        afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 
         BOOL OnMenuOptionSelected(UINT nID);
         void OnProcedureSelected(UINT nID);
 
-        void DrawContent(CDC& dc);
         CRect GetClientRectBelowTitleBar();
-
-        afx_msg void OnTimer(UINT_PTR nIDEvent);
-
-        
+                
         DECLARE_MESSAGE_MAP()
 
     public:
@@ -70,49 +56,18 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
 
     private:
         IWTitleBar titleBar;
-        IWLiveData m_latestLiveData;
-        void DrawDiamond(CPoint pt, int size, CDC& dc);
-        bool CalculateTargetCoordinates(const IWTargetPosition& position, CPoint& ptTopView, CPoint& ptSideView);
-        void UpdateDimentions();
+        IWVisualization ilsVisualization;
+        COLORREF windowBorderColor;
+        COLORREF windowOuterBorderColor;
+
         void CreatePopupMenu(CPoint point);
 
         IWApproachDefinition selectedApproach;
         std::vector<IWApproachDefinition> availableApproaches;
 
-        double CalculateDistance(double lat1, double lon1, double lat2, double lon2);
-        double CalculateBearing(double lat1, double lon1, double lat2, double lon2);
-        double CalculateTemperatureCorrection(int planePressAlt, int airportPressureAlt, double surfTemp);
-
-        COLORREF rangeStatusTextColor;
-        COLORREF windowBackground;
-        COLORREF targetLabelColor;
-        CPen glideSlopePen;
-        CBrush localizerBrush;
-        CPen radarTargetPen;
-        CPen historyTrailPen;
-        CPen windowBorderPen;
-        CPen windowOuterBorderPen;
         IIWWndEventListener* m_listener = nullptr;
-        IWTagMode tagMode;
-        bool showTagsByDefault;
 
-        std::set<std::string> clickedTargets;
-
-        int approachLength;
-        bool leftToRight;
-        bool applyTemperatureCorrection = true;
-
-        // Dimentions
-        float approachHeightFt;
-        double pixelsPerFt;
-        double pixelsPerNauticalMile;
-        CPoint glidePathTop;
-        CPoint glidePathBottom;
-
-        bool showZoomMessage = false;
-        UINT_PTR zoomMessageTimerId = 1;
-
-        CFont euroScopeFont;
+        CFont font;
 
         // For handling events from the title bar
         void OnResizeStart() override;
@@ -120,5 +75,6 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         void OnMenuButtonClicked() override;
 
         // For thread safety between EuroScope and the window thread
+        IWLiveData m_latestLiveData;
         mutable std::mutex approachDataMutex;
 };
