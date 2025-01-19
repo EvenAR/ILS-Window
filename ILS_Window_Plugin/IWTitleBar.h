@@ -51,5 +51,7 @@ class IWTitleBar : public CStatic {
 
         void PositionButtons(const CRect& rect);
 
+        void DrawCdeStyleContent(CDC* pdc, CRect rect);
+
         DECLARE_MESSAGE_MAP()
 };

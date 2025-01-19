@@ -106,6 +106,9 @@
     <ClInclude Include="IWVisualization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ILS_Window_Plugin.rc">

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "IWTitleBar.h"
+#include "RenderUtils.h"
 
 IMPLEMENT_DYNAMIC(IWTitleBar, CStatic)
 
@@ -16,7 +17,7 @@ IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, COLORREF tex
     this->textColor = textColor;
 
     this->text = title;
-    this->font.CreatePointFont(100, _T("EuroScope"));
+    this->font.CreatePointFont(90, _T("EuroScope"));
     this->eventListener = listener;
 }
 
@@ -26,13 +27,13 @@ BOOL IWTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
         return FALSE;
 
     // Create buttons with default settings
-    if (!resizeButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_RESIZE_BUTTON) ||
+    /*if (!resizeButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_RESIZE_BUTTON) ||
         !menuButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_MENU_BUTTON) ||
         !closeButton.Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_CLOSE_BUTTON))
         return FALSE;
 
     // Position buttons
-    PositionButtons(rect);
+    PositionButtons(rect);*/
 
     return TRUE;
 }
@@ -43,21 +44,11 @@ void IWTitleBar::OnPaint()
     CRect rect;
     GetClientRect(&rect);  // Get the client area of the control
 
-    auto oldFont = dc.SelectObject(this->font);
-
     // Fill the background with your custom color
     dc.FillSolidRect(rect, this->backgroundColor);  // Dark background
 
-    // Set the text color to white
-    dc.SetTextColor(this->textColor);
-    dc.SetBkMode(TRANSPARENT);  // Transparent background for text
+    DrawCdeStyleContent(&dc, rect);
 
-    // Draw the text centered in the client area
-    CRect titleRect = rect;
-    titleRect.left += 3;
-    dc.DrawText(_T(this->text.c_str()), -1, titleRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-
-    dc.SelectObject(oldFont);
 }
 
 void IWTitleBar::OnCloseButtonClicked()
@@ -68,7 +59,7 @@ void IWTitleBar::OnCloseButtonClicked()
 
 void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    CRect resizeButtonRect;
+    /*CRect resizeButtonRect;
     resizeButton.GetClientRect(&resizeButtonRect);
     resizeButton.ClientToScreen(&resizeButtonRect);
 
@@ -84,14 +75,13 @@ void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     {
         this->eventListener->OnMenuButtonClicked();
     }
-    else {
+    else {*/
         // Simulate dragging the window
         CWnd* pParent = GetParent();
         if (pParent)
         {
             pParent->SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
         }
-    }
 
     CWnd::OnLButtonDown(nFlags, point);
 }
@@ -141,4 +131,44 @@ void IWTitleBar::PositionButtons(const CRect& rect)
     CRect closeButtonRect(left, top, right, bottom);
     if (closeButton.GetSafeHwnd())
         closeButton.MoveWindow(closeButtonRect);
+}
+
+void IWTitleBar::DrawCdeStyleContent(CDC* pdc, CRect rect)
+{
+    CRect closeButton = rect;
+    closeButton.right = closeButton.left + rect.Height();
+
+    CRect minimizeIcon = closeButton;
+    minimizeIcon.left = closeButton.left + closeButton.Width() * 0.25;
+    minimizeIcon.right = minimizeIcon.right - closeButton.Width() * 0.25;
+    minimizeIcon.top = closeButton.top + closeButton.Height() / 2 - 2;
+    minimizeIcon.bottom = minimizeIcon.top + 4;
+
+    Draw3dRect(pdc, closeButton);
+    Draw3dRect(pdc, minimizeIcon);
+
+    CRect menuButton = rect;
+    menuButton.left = rect.right - rect.Height();
+
+    CRect menuIcon = menuButton;
+    menuIcon.left = menuButton.left + menuButton.Width() * 0.35;
+    menuIcon.right = menuIcon.right - menuButton.Width() * 0.35;
+    menuIcon.top = menuButton.top + menuButton.Width() * 0.35;
+    menuIcon.bottom = menuButton.bottom - menuButton.Width() * 0.35;
+
+    Draw3dRect(pdc, menuButton);
+    Draw3dRect(pdc, menuIcon);
+
+    CRect restOfTheBar = rect;
+    restOfTheBar.left = closeButton.right;
+    restOfTheBar.right = menuButton.left;
+
+    Draw3dRect(pdc, restOfTheBar);
+
+    // Draw window title
+    auto oldFont = pdc->SelectObject(this->font);
+    pdc->SetTextColor(this->textColor);
+    pdc->SetBkMode(TRANSPARENT);  
+    pdc->DrawText(_T(this->text.c_str()), -1, restOfTheBar, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    pdc->SelectObject(oldFont);
 }

@@ -10,9 +10,9 @@
 #define IDC_TOPBAR       1002
 #define WM_UPDATE_DATA (WM_USER + 1)
 
-#define TITLE_BAR_HEIGHT 27
+#define TITLE_BAR_HEIGHT 24
 #define SIZE_SNAP_INCREMENTS 20.0
-#define WINDOW_BORDER_WIDTH 4
+#define WINDOW_BORDER_THICKNESS 6
 #define WINDOW_OUTER_BORDER_WIDTH 1
 
 class IWWindow;
@@ -61,6 +61,7 @@ class IWWindow : public CWnd, IWTitleBarEventListener {
         COLORREF windowOuterBorderColor;
 
         void CreatePopupMenu(CPoint point);
+        void DrawCdeStyleBorder(CDC *pdc, CRect rect);
 
         IWApproachDefinition selectedApproach;
         std::vector<IWApproachDefinition> availableApproaches;

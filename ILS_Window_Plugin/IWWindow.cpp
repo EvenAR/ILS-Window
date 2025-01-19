@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "IWWindow.h"
 #include <cmath>
+#include "RenderUtils.h"
 
 #define MAX_PROCEDURES 100
 
@@ -93,6 +94,8 @@ void IWWindow::OnPaint()
     innerRect.InflateRect(-WINDOW_OUTER_BORDER_WIDTH, -WINDOW_OUTER_BORDER_WIDTH);
     memDC.FillSolidRect(innerRect, windowBorderColor);
 
+    DrawCdeStyleBorder(&memDC, rect);
+
     // Copy the buffer to the screen
     dc.BitBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, SRCCOPY);
 
@@ -112,7 +115,7 @@ void IWWindow::OnSize(UINT nType, int cx, int cy)
 
     if (titleBar.GetSafeHwnd())
     {
-        CRect barRect(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, cx - WINDOW_BORDER_WIDTH, TITLE_BAR_HEIGHT);
+        CRect barRect(WINDOW_BORDER_THICKNESS, WINDOW_BORDER_THICKNESS, cx - WINDOW_BORDER_THICKNESS, TITLE_BAR_HEIGHT);
         titleBar.MoveWindow(barRect);
     }
 
@@ -194,9 +197,9 @@ CRect IWWindow::GetClientRectBelowTitleBar()
     ScreenToClient(&topBarRect); // Convert to client coordinates
 
     rect.top = topBarRect.bottom; // Move the top to below the top bar
-    rect.left += WINDOW_BORDER_WIDTH;
-    rect.right -= WINDOW_BORDER_WIDTH;
-    rect.bottom -= WINDOW_BORDER_WIDTH;
+    rect.left += WINDOW_BORDER_THICKNESS;
+    rect.right -= WINDOW_BORDER_THICKNESS;
+    rect.bottom -= WINDOW_BORDER_THICKNESS;
 
     return rect;
 }
@@ -318,6 +321,72 @@ void IWWindow::CreatePopupMenu(CPoint point)
 
     // Display the menu
     menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+}
+
+void IWWindow::DrawCdeStyleBorder(CDC* pdc, CRect rect)
+{
+    COLORREF lightColor = RGB(150, 249, 252); // Lighter shade for top/left
+    COLORREF darkColor = RGB(60, 111, 119);  // Darker shade for bottom/right
+
+    // Edges
+
+    CRect leftBorderRect = rect;
+    leftBorderRect.top = leftBorderRect.top + TITLE_BAR_HEIGHT;
+    leftBorderRect.left = leftBorderRect.left + 1;
+    leftBorderRect.right = leftBorderRect.left + WINDOW_BORDER_THICKNESS - 1;
+    leftBorderRect.bottom = leftBorderRect.bottom - TITLE_BAR_HEIGHT;
+    Draw3dRect(pdc, leftBorderRect);
+
+    CRect bottomBorderRect = rect;
+    bottomBorderRect.top = bottomBorderRect.bottom - WINDOW_BORDER_THICKNESS;
+    bottomBorderRect.left = bottomBorderRect.left + TITLE_BAR_HEIGHT;
+    bottomBorderRect.right = bottomBorderRect.right - TITLE_BAR_HEIGHT;
+    bottomBorderRect.bottom = bottomBorderRect.bottom - 1;
+    Draw3dRect(pdc, bottomBorderRect);
+
+    CRect rightBorderRect = rect;
+    rightBorderRect.top = rightBorderRect.top + TITLE_BAR_HEIGHT;
+    rightBorderRect.left = rightBorderRect.right - WINDOW_BORDER_THICKNESS;
+    rightBorderRect.right = rightBorderRect.right - 1;
+    rightBorderRect.bottom = rightBorderRect.bottom - TITLE_BAR_HEIGHT;
+    Draw3dRect(pdc, rightBorderRect);
+
+    CRect topBorderRect = rect;
+    topBorderRect.top = topBorderRect.top + 1;
+    topBorderRect.left = topBorderRect.left + TITLE_BAR_HEIGHT;
+    topBorderRect.right = topBorderRect.right - TITLE_BAR_HEIGHT;
+    topBorderRect.bottom = topBorderRect.top + WINDOW_BORDER_THICKNESS - 1;
+    Draw3dRect(pdc, topBorderRect);
+
+    // Corners
+
+    CRect topLeftCornerRect = rect;
+    topLeftCornerRect.top = topLeftCornerRect.top + 1;
+    topLeftCornerRect.left = topLeftCornerRect.left + 1;
+    topLeftCornerRect.right = topLeftCornerRect.left + TITLE_BAR_HEIGHT - 2;
+    topLeftCornerRect.bottom = topLeftCornerRect.top + TITLE_BAR_HEIGHT - 2;
+    Draw3dCorner(pdc, topLeftCornerRect, WINDOW_BORDER_THICKNESS, lightColor, darkColor, true, true);
+
+    CRect topRightCornerRect = rect;
+    topRightCornerRect.top = topRightCornerRect.top + 1;
+    topRightCornerRect.left = topRightCornerRect.right - TITLE_BAR_HEIGHT;
+    topRightCornerRect.right = topRightCornerRect.right - 2;
+    topRightCornerRect.bottom = topRightCornerRect.top + TITLE_BAR_HEIGHT - 2;
+    Draw3dCorner(pdc, topRightCornerRect, WINDOW_BORDER_THICKNESS, lightColor, darkColor, true, false);
+
+    CRect bottomRightCornerRect = rect;
+    bottomRightCornerRect.top = bottomRightCornerRect.bottom - TITLE_BAR_HEIGHT;
+    bottomRightCornerRect.left = bottomRightCornerRect.right - TITLE_BAR_HEIGHT;
+    bottomRightCornerRect.right = bottomRightCornerRect.right - 2;
+    bottomRightCornerRect.bottom = bottomRightCornerRect.bottom - 2;
+    Draw3dCorner(pdc, bottomRightCornerRect, WINDOW_BORDER_THICKNESS, lightColor, darkColor, false, false);
+
+    CRect bottomLeftCornerRect = rect;
+    bottomLeftCornerRect.top = bottomLeftCornerRect.bottom - TITLE_BAR_HEIGHT;
+    bottomLeftCornerRect.left = bottomLeftCornerRect.left + 1;
+    bottomLeftCornerRect.right = bottomLeftCornerRect.left + TITLE_BAR_HEIGHT - 2;
+    bottomLeftCornerRect.bottom = bottomLeftCornerRect.bottom - 2;
+    Draw3dCorner(pdc, bottomLeftCornerRect, WINDOW_BORDER_THICKNESS, lightColor, darkColor, false, true);
 }
 
 BOOL IWWindow::OnMenuOptionSelected(UINT nID)
