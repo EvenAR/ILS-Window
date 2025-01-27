@@ -117,8 +117,8 @@
   <ItemGroup>
     <ClCompile Include="IWCdeMenuBtn.cpp" />
     <ClCompile Include="IWCdeWindow.cpp" />
-    <ClCompile Include="IWX11CloseBtn.cpp" />
-    <ClCompile Include="IWCdeCloseBtn.cpp" />
+    <ClCompile Include="IWX11IconifyBtn.cpp" />
+    <ClCompile Include="IWCdeIconifyBtn.cpp" />
     <ClCompile Include="IWX11MenuBtn.cpp" />
     <ClCompile Include="IWX11ResizeBtn.cpp" />
     <ClCompile Include="IWTitleBar.cpp" />
@@ -145,8 +145,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="IWCdeMenuBtn.h" />
     <ClInclude Include="IWCdeWindow.h" />
-    <ClInclude Include="IWX11CloseBtn.h" />
-    <ClInclude Include="IWCdeCloseBtn.h" />
+    <ClInclude Include="IWX11IconifyBtn.h" />
+    <ClInclude Include="IWCdeIconifyBtn.h" />
     <ClInclude Include="IWX11MenuBtn.h" />
     <ClInclude Include="IWX11ResizeBtn.h" />
     <ClInclude Include="IWTitleBar.h" />

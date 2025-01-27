@@ -2,10 +2,10 @@
 
 #include "IWTitleBarBtn.h"
 
-class IWCdeCloseBtn : public IWTitleBarBtn
+class IWCdeIconifyBtn : public IWTitleBarBtn
 {
 public:
-    IWCdeCloseBtn(COLORREF lightColor, COLORREF darkColor);
+    IWCdeIconifyBtn(COLORREF lightColor, COLORREF darkColor);
 
 private:
     void DrawSymbol(CDC* pDC, CRect rect) override;

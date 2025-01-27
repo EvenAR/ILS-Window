@@ -10,6 +10,7 @@
 #define MENU_ITEM_FLIP                      10000
 #define MENU_ITEM_SHOW_LABELS               10001
 #define MENU_ITEM_CORRECT_FOR_TEMPERATURE   10002
+#define MENU_ITEM_CLOSE                     10003
 #define MENU_ITEM_PROCEDURES_SEL_START      20000
 #define MENU_ITEM_PROCEDURES_NEW_START      30000
 
@@ -31,6 +32,7 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_CORRECT_FOR_TEMPERATURE, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_CLOSE, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
@@ -236,9 +238,9 @@ void IWWindow::OnResizeStart()
     SendMessage(WM_NCLBUTTONDOWN, HTTOPRIGHT, NULL); // Resize using the top right corner
 }
 
-void IWWindow::OnCloseButtonClicked()
+void IWWindow::OnIconifyButtonClicked()
 {
-    this->DestroyWindow();
+    this->ShowWindow(SW_MINIMIZE);
 }
 
 void IWWindow::OnMenuButtonClicked()
@@ -430,6 +432,12 @@ void IWWindow::CreatePopupMenu(CPoint point)
         _T("Change orientation")
     );
 
+    menu.AppendMenu(
+        MF_STRING | MF_REMOVE,
+        MENU_ITEM_CLOSE,
+        _T("Close")
+    );
+  
     // Display the menu
     menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }
@@ -450,6 +458,10 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
     {
         ilsVisualization.SetApplyTemperatureCorrection(!ilsVisualization.GetApplyTemperatureCorrection());
         Invalidate();
+    }
+    else if (nID == MENU_ITEM_CLOSE)
+    {
+        this->DestroyWindow();
     }
     return TRUE;
 }

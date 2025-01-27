@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "IWX11TitleBar.h"
 
-#include "IWX11CloseBtn.h"
+#include "IWX11IconifyBtn.h"
 #include "IWX11MenuBtn.h"
 #include "IWX11ResizeBtn.h"
 
 IWX11TitleBar::IWX11TitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, IWTitleBarEventListener* listener)
     : IWTitleBar(title, backgroundColor, 14, listener)
 {
-    this->closeButton = new IWX11CloseBtn();
+    this->iconifyButton = new IWX11IconifyBtn();
     this->menuButton = new IWX11MenuBtn();
     this->resizeButton = new IWX11ResizeBtn();
 }
@@ -42,10 +42,10 @@ void IWX11TitleBar::PositionButtons(const CRect& rect)
     right = left - margin;
     left = right - btnWidth;
 
-    // Position the close button
-    CRect closeButtonRect(left, top, right, bottom);
-    if (closeButton->GetSafeHwnd())
-        closeButton->MoveWindow(closeButtonRect);
+    // Position the iconify button
+    CRect iconifyButtonRect(left, top, right, bottom);
+    if (iconifyButton->GetSafeHwnd())
+        iconifyButton->MoveWindow(iconifyButtonRect);
 }
 
 void IWX11TitleBar::DrawTitle(CDC* pdc, CRect rect)

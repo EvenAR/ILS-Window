@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "IWCdeTitleBar.h"
 #include "RenderUtils.h"
-#include "IWCdeCloseBtn.h"
+#include "IWCdeIconifyBtn.h"
 #include "IWCdeMenuBtn.h"
 #include "IWX11ResizeBtn.h"
 
@@ -12,7 +12,7 @@ IWCdeTitleBar::IWCdeTitleBar(std::string title, COLORREF backgroundColor, COLORR
     this->darkColor = darkcolor;
     this->textColor = textColor;
 
-    this->closeButton = new IWCdeCloseBtn(lightColor, darkColor);
+    this->iconifyButton = new IWCdeIconifyBtn(lightColor, darkColor);
     this->menuButton = new IWCdeMenuBtn(lightColor, darkColor);
     this->resizeButton = new IWX11ResizeBtn();
 }
@@ -23,13 +23,13 @@ void IWCdeTitleBar::PositionButtons(const CRect& rect)
     if (menuButton->GetSafeHwnd())
         menuButton->MoveWindow(menuButtonRect);
 
-    CRect closeButtonRect(rect.right - rect.Height(), rect.top, rect.right, rect.bottom);
-    if (closeButton->GetSafeHwnd())
-        closeButton->MoveWindow(closeButtonRect);
+    CRect iconifyButtonRect(rect.right - rect.Height(), rect.top, rect.right, rect.bottom);
+    if (iconifyButton->GetSafeHwnd())
+        iconifyButton->MoveWindow(iconifyButtonRect);
 
     titleArea = rect;
     titleArea.left = menuButtonRect.right;
-    titleArea.right = closeButtonRect.left;
+    titleArea.right = iconifyButtonRect.left;
 }
 
 void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect)

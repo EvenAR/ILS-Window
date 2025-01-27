@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "IWX11CloseBtn.h"
+#include "IWX11IconifyBtn.h"
 
-void IWX11CloseBtn::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11IconifyBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
     // Draw a black circle in the center
     CBrush brush(RGB(0, 0, 0)); // Solid black brush for the circle

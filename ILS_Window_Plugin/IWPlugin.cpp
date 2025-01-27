@@ -43,10 +43,27 @@ IWPlugin::~IWPlugin()
     }
 }
 
-void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
+void IWPlugin::ShowWindow(IWApproachDefinition* approach)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
+    // Check if a window with the same title is already open
+    IWWindow* windowWithSameTitle = nullptr;
+    for (const auto& window : windows) {
+        if (window->GetActiveApproachName() == approach->title) {
+            windowWithSameTitle = window;
+            break;
+        }
+    }
+
+    if (windowWithSameTitle) {
+        // Restore the window and bring it to the front
+        windowWithSameTitle->ShowWindow(SW_RESTORE);
+        windowWithSameTitle->SetForegroundWindow();
+        return;
+    }
+
+    // Calculate the spawning point for the new window
     CPoint spawningPoint = CPoint(int(windows.size()) * 50, int(windows.size()) * 50 + 100);
     CSize windowSize = CSize(300, 200);
 
@@ -76,7 +93,7 @@ void IWPlugin::OpenNewWindow(IWApproachDefinition* approach)
     }
    
     auto hwndPopup = newWindow->CreateEx(
-        WS_EX_NOACTIVATE | WS_EX_TOPMOST,
+        WS_EX_TOPMOST | WS_EX_APPWINDOW | WS_EX_NOACTIVATE,
         WINDOW_CLASS_NAME,
         _T(approach->title.c_str()),
         WS_POPUP,
@@ -240,7 +257,7 @@ void IWPlugin::SyncWithActiveRunways()
         }); 
 
         if (!alreadyOpen) {
-            this->OpenNewWindow(approach);
+            this->ShowWindow(approach);
         }
     }
 }
@@ -421,10 +438,10 @@ void IWPlugin::OnWindowMenuOpenNew(std::string approachTitle)
         });
 
     if (selectedApproach != availableApproaches.end()) {
-        OpenNewWindow(&(*selectedApproach));
+        ShowWindow(&(*selectedApproach));
     }
     else {
-        OpenNewWindow(&availableApproaches[0]);
+        ShowWindow(&availableApproaches[0]);
     }
 }
 
@@ -488,7 +505,7 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 
     if (it != this->availableApproaches.end()) {
         // Approach found: Open the approach window
-        this->OpenNewWindow(&(*it));
+        this->ShowWindow(&(*it));
         return true; // Command handled
     }
     else {

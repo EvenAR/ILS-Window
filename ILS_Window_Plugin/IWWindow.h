@@ -61,7 +61,7 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
 
         // For handling events from the title bar
         void OnResizeStart() override;
-        void OnCloseButtonClicked() override;
+        void OnIconifyButtonClicked() override;
         void OnMenuButtonClicked() override;
 
         // For thread safety between EuroScope and the window thread

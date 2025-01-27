@@ -9,7 +9,7 @@
 class IWTitleBarEventListener {
 public:
     virtual void OnResizeStart() = 0;
-    virtual void OnCloseButtonClicked() = 0;
+    virtual void OnIconifyButtonClicked() = 0;
     virtual void OnMenuButtonClicked() = 0;
 };
 
@@ -32,7 +32,7 @@ protected:
     virtual void DrawTitle(CDC* pdc, CRect rect) {};
 
     IWTitleBarBtn* menuButton;
-    IWTitleBarBtn* closeButton;
+    IWTitleBarBtn* iconifyButton;
     IWTitleBarBtn* resizeButton;
 
     std::string text;
@@ -44,7 +44,7 @@ private:
 
     afx_msg void OnPaint();
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    afx_msg void OnCloseButtonClicked();
+    afx_msg void OnIconifyButtonClicked();
     afx_msg void OnMenuButtonClicked();
     afx_msg void OnSize(UINT nType, int cx, int cy);
 };

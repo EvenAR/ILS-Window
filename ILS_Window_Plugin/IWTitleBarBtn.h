@@ -5,7 +5,7 @@ class IWTitleBarBtn : public CButton {
 
 public:
     virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
-    virtual BOOL IWTitleBarBtn::OnEraseBkgnd(CDC* pDC);
+    virtual BOOL OnEraseBkgnd(CDC* pDC);
 
 protected:
     DECLARE_MESSAGE_MAP()

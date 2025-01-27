@@ -54,7 +54,7 @@
     <ClCompile Include="IWTitleBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IWCdeCloseBtn.cpp">
+    <ClCompile Include="IWCdeIconifyBtn.cpp">
       <Filter>Source Files\Theme\SolarisCDE</Filter>
     </ClCompile>
     <ClCompile Include="IWCdeMenuBtn.cpp">
@@ -66,7 +66,7 @@
     <ClCompile Include="IWX11ResizeBtn.cpp">
       <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
-    <ClCompile Include="IWX11CloseBtn.cpp">
+    <ClCompile Include="IWX11IconifyBtn.cpp">
       <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
     <ClCompile Include="IWX11MenuBtn.cpp">
@@ -130,7 +130,7 @@
     <ClInclude Include="IWCdeMenuBtn.h">
       <Filter>Header Files\Theme\SolarisCDE</Filter>
     </ClInclude>
-    <ClInclude Include="IWCdeCloseBtn.h">
+    <ClInclude Include="IWCdeIconifyBtn.h">
       <Filter>Header Files\Theme\SolarisCDE</Filter>
     </ClInclude>
     <ClInclude Include="IWCdeTitleBar.h">
@@ -145,7 +145,7 @@
     <ClInclude Include="IWX11MenuBtn.h">
       <Filter>Header Files\Theme\X11</Filter>
     </ClInclude>
-    <ClInclude Include="IWX11CloseBtn.h">
+    <ClInclude Include="IWX11IconifyBtn.h">
       <Filter>Header Files\Theme\X11</Filter>
     </ClInclude>
     <ClInclude Include="IWTitleBar.h">
