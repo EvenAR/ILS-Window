@@ -46,6 +46,7 @@ private:
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnIconifyButtonClicked();
     afx_msg void OnMenuButtonClicked();
+    afx_msg void OnResizeButtonPressed();
     afx_msg void OnSize(UINT nType, int cx, int cy);
 };
 

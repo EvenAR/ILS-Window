@@ -1,17 +1,6 @@
 #include "pch.h"
 #include "IWX11ResizeBtn.h"
 
-BEGIN_MESSAGE_MAP(IWX11ResizeBtn, CButton)
-    ON_WM_LBUTTONDOWN()
-    ON_WM_ERASEBKGND()
-END_MESSAGE_MAP()
-
-BOOL IWX11ResizeBtn::OnEraseBkgnd(CDC* pDC)
-{
-    // Do nothing to keep the background transparent
-    return TRUE;
-}
-
 void IWX11ResizeBtn::DrawSymbol(CDC* pDC, CRect rect) {
     // Create a 1px black pen
     CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
@@ -37,18 +26,4 @@ void IWX11ResizeBtn::DrawSymbol(CDC* pDC, CRect rect) {
 
     // Restore old pen
     pDC->SelectObject(oldPen);
-}
-
-
-void IWX11ResizeBtn::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    CPoint screenPoint = point;
-    ClientToScreen(&screenPoint);
-
-    // Get the parent window
-    CWnd* parentWnd = GetParent();
-    if (parentWnd)
-    {
-        parentWnd->SendMessage(WM_LBUTTONDOWN, NULL, MAKELPARAM(screenPoint.x, screenPoint.y));
-    }
 }

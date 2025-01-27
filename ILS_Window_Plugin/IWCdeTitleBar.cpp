@@ -12,9 +12,9 @@ IWCdeTitleBar::IWCdeTitleBar(std::string title, COLORREF backgroundColor, COLORR
     this->darkColor = darkcolor;
     this->textColor = textColor;
 
-    this->iconifyButton = new IWCdeIconifyBtn(lightColor, darkColor);
-    this->menuButton = new IWCdeMenuBtn(lightColor, darkColor);
-    this->resizeButton = new IWX11ResizeBtn();
+    this->iconifyButton = new IWCdeIconifyBtn(backgroundColor, lightColor, darkColor);
+    this->menuButton = new IWCdeMenuBtn(backgroundColor, lightColor, darkColor);
+    this->resizeButton = new IWX11ResizeBtn(backgroundColor);
 }
 
 void IWCdeTitleBar::PositionButtons(const CRect& rect)

@@ -1,10 +1,6 @@
 #include "pch.h"
 #include "IWX11MenuBtn.h"
 
-BEGIN_MESSAGE_MAP(IWX11MenuBtn, CButton)
-    ON_WM_LBUTTONDOWN()
-    ON_WM_ERASEBKGND()
-END_MESSAGE_MAP()
 
 void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
@@ -30,22 +26,4 @@ void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 
     // Restore the previous brush
     pDC->SelectObject(oldBrush);
-}
-
-void IWX11MenuBtn::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    CPoint screenPoint = point;
-    ClientToScreen(&screenPoint);
-
-    // Get the parent window
-    CWnd* parentWnd = GetParent();
-    if (parentWnd)
-    {
-        parentWnd->SendMessage(WM_LBUTTONDOWN, NULL, MAKELPARAM(screenPoint.x, screenPoint.y));
-    }
-}
-
-BOOL IWX11MenuBtn::OnEraseBkgnd(CDC* pDC)
-{
-    return TRUE;
 }

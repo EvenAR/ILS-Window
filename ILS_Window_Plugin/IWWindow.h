@@ -46,7 +46,6 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
 
         IWTitleBar* titleBar;
 
-
     private:
 
         IWVisualization ilsVisualization;
@@ -80,7 +79,6 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         afx_msg BOOL OnNcActivate(BOOL bActive);
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-        afx_msg void OnMouseMove(UINT nFlags, CPoint point);
         afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 
         BOOL OnMenuOptionSelected(UINT nID);

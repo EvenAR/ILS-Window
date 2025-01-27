@@ -10,6 +10,7 @@ BEGIN_MESSAGE_MAP(IWTitleBar, CStatic)
     ON_WM_LBUTTONDOWN()
     ON_BN_CLICKED(IDC_CLOSE_BUTTON, &IWTitleBar::OnIconifyButtonClicked)
     ON_BN_CLICKED(IDC_MENU_BUTTON, &IWTitleBar::OnMenuButtonClicked)
+    ON_COMMAND(IDC_RESIZE_BUTTON, &IWTitleBar::OnResizeButtonPressed)
 END_MESSAGE_MAP()
 
 IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener)
@@ -32,6 +33,8 @@ BOOL IWTitleBar::CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID)
         !menuButton->Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_MENU_BUTTON) ||
         !iconifyButton->Create(_T(""), WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, CRect(), this, IDC_CLOSE_BUTTON))
         return FALSE;
+
+    resizeButton->SetButtonID(IDC_RESIZE_BUTTON);
 
     // Position buttons
     PositionButtons(rect);
@@ -65,24 +68,14 @@ void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     if (!pParent)
         return;
 
-    CRect menuButtonRect;
-    menuButton->GetClientRect(&menuButtonRect);
-    menuButton->ClientToScreen(&menuButtonRect);
-
     CRect resizeButtonRect;
     resizeButton->GetClientRect(&resizeButtonRect);
     resizeButton->ClientToScreen(&resizeButtonRect);
 
     if (resizeButtonRect.PtInRect(point)) {
-        // Start resizing the window
         this->eventListener->OnResizeStart();
     }
-    else if (menuButtonRect.PtInRect(point)) {
-        // Simulate clicking the menu button
-        this->eventListener->OnMenuButtonClicked();
-    }
     else {
-        // Simulate dragging the window
         pParent->SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
     }
 
@@ -99,3 +92,7 @@ void IWTitleBar::OnMenuButtonClicked()
     this->eventListener->OnMenuButtonClicked();
 }
 
+void IWTitleBar::OnResizeButtonPressed()
+{
+    this->eventListener->OnResizeStart();
+}

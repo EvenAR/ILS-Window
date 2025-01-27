@@ -8,9 +8,9 @@
 IWX11TitleBar::IWX11TitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, IWTitleBarEventListener* listener)
     : IWTitleBar(title, backgroundColor, 14, listener)
 {
-    this->iconifyButton = new IWX11IconifyBtn();
-    this->menuButton = new IWX11MenuBtn();
-    this->resizeButton = new IWX11ResizeBtn();
+    this->iconifyButton = new IWX11IconifyBtn(backgroundColor);
+    this->menuButton = new IWX11MenuBtn(backgroundColor);
+    this->resizeButton = new IWX11ResizeBtn(backgroundColor);
 }
 
 void IWX11TitleBar::PositionButtons(const CRect& rect)

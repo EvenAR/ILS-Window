@@ -5,7 +5,7 @@
 class IWCdeMenuBtn : public IWTitleBarBtn
 {
 public:
-    IWCdeMenuBtn(COLORREF lightColor, COLORREF darkColor);
+    IWCdeMenuBtn(COLORREF backgroundColor, COLORREF lightColor, COLORREF darkColor);
 
 private:
     void DrawSymbol(CDC* pDC, CRect rect) override;

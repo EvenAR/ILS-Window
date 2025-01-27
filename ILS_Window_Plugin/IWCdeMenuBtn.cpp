@@ -2,7 +2,7 @@
 #include "IWCdeMenuBtn.h"
 #include "RenderUtils.h"
 
-IWCdeMenuBtn::IWCdeMenuBtn(COLORREF lightColor, COLORREF darkColor)
+IWCdeMenuBtn::IWCdeMenuBtn(COLORREF backgroundColor, COLORREF lightColor, COLORREF darkColor) : IWTitleBarBtn(backgroundColor)
 {
     this->lightColor = lightColor;
     this->darkColor = darkColor;

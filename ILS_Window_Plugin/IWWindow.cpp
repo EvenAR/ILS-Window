@@ -16,7 +16,6 @@
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_LBUTTONDOWN()
-    ON_WM_MOUSEMOVE()
     ON_WM_SETCURSOR()
     ON_WM_PAINT()
     ON_WM_CREATE()
@@ -285,32 +284,6 @@ void IWWindow::OnLButtonDown(UINT nFlags, CPoint point)
     }
 
     CWnd::OnLButtonDown(nFlags, point);
-}
-
-void IWWindow::OnMouseMove(UINT nFlags, CPoint point)
-{
-    /*CRect clientRect;
-    GetClientRect(&clientRect);
- 
-    bool isTop, isLeft, isRight, isBottom;
-    GetEdgeCursorPosition(point, isTop, isLeft, isRight, isBottom);
-
-    if (isTop && isLeft)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENWSE));
-    else if (isTop && isRight)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENESW));
-    else if (isBottom && isLeft)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENESW));
-    else if (isBottom && isRight)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENWSE));
-    else if (isTop || isBottom)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENS));
-    else if (isLeft || isRight)
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEWE));
-    else
-        SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-
-    CWnd::OnMouseMove(nFlags, point);*/
 }
 
 BOOL IWWindow::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)

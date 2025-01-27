@@ -2,7 +2,7 @@
 #include "IWCdeIconifyBtn.h"
 #include "RenderUtils.h"
 
-IWCdeIconifyBtn::IWCdeIconifyBtn(COLORREF lightColor, COLORREF darkColor)
+IWCdeIconifyBtn::IWCdeIconifyBtn(COLORREF backgroundColor, COLORREF lightColor, COLORREF darkColor) : IWTitleBarBtn(backgroundColor)
 {
     this->lightColor = lightColor;
     this->darkColor = darkColor;
