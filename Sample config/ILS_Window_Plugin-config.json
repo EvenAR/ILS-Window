@@ -1,7 +1,7 @@
 {
     "behaviour": {
         "openWindowsBasedOnActiveRunways": true,
-        "windowSimulation": "CDE"
+        "windowStyle": "CDE"
     },
     "styling": {
         "fontSize": 12,

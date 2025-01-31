@@ -31,7 +31,6 @@ IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStylin
     this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
 
     this->font = font;
-    float fontPointsSize = styling.fontSize * 72 / 96;
 }
 
 

@@ -67,5 +67,5 @@ struct IWStyling {
 
 struct IWBehaviourSettings {
     bool openWindowsBasedOnActiveRunways;
-    std::string windowSimulation;
+    std::string windowStyle;
 };

@@ -85,7 +85,7 @@ void IWPlugin::ShowWindow(IWApproachDefinition* approach)
     }
 
     IWWindow* newWindow = nullptr;
-    if (this->behaviourSettings.windowSimulation == "X11") {
+    if (this->behaviourSettings.windowStyle == "X11") {
         newWindow = new IWX11Window(*approach, windowStyling);
     }
     else {
@@ -411,7 +411,7 @@ IWBehaviourSettings IWPlugin::ReadBehaviourSettings(const std::string& jsonFileP
 
     return IWBehaviourSettings{
         jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>(),
-        readStringWithDefault("windowSimulation", "X11")
+        readStringWithDefault("windowStyle", "X11")
     };
 }
 
