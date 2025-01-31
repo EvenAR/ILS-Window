@@ -5,7 +5,7 @@
 IWX11Window::IWX11Window(IWApproachDefinition selectedApproach, IWStyling styling)
     : IWWindow(selectedApproach, styling, 26, 3, 1)
 {
-    this->titleBar = new IWX11TitleBar(selectedApproach.title, windowBorderColor, textColor, this);
+    this->titleBar = new IWX11TitleBar(windowBorderColor, textColor, this);
 }
 
 void IWX11Window::DrawBorder(CDC* pdc, CRect windowRect)

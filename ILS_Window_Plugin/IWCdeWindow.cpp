@@ -9,7 +9,7 @@ IWCdeWindow::IWCdeWindow(IWApproachDefinition selectedApproach, IWStyling stylin
     , darkColor(AdjustColorBrightness(styling.windowFrameColor, 0.4))
 {
     COLORREF textColor = RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b);
-    this->titleBar = new IWCdeTitleBar(selectedApproach.title, windowBorderColor, textColor, lightColor, darkColor, this);
+    this->titleBar = new IWCdeTitleBar(windowBorderColor, textColor, lightColor, darkColor, this);
 }
 
 int IWCdeWindow::GetEdgeCursorPosition(CPoint point)

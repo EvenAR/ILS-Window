@@ -7,12 +7,12 @@ class IWTitleBarEventListener;
 
 class IWCdeTitleBar : public IWTitleBar {
     public:
-        IWCdeTitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, COLORREF lightColor, COLORREF darkcolor, IWTitleBarEventListener* listener);
+        IWCdeTitleBar(COLORREF backgroundColor, COLORREF textColor, COLORREF lightColor, COLORREF darkcolor, IWTitleBarEventListener* listener);
         virtual ~IWCdeTitleBar() {}
 
     private: 
         void PositionButtons(const CRect& rect) override;
-        void DrawTitle(CDC* pdc, CRect rect) override;
+        void DrawTitle(CDC* pdc, CRect rect, CString title) override;
 
         COLORREF backgroundColor;
         COLORREF textColor;

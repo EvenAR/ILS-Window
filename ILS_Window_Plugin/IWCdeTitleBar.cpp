@@ -5,8 +5,8 @@
 #include "IWCdeMenuBtn.h"
 #include "IWX11ResizeBtn.h"
 
-IWCdeTitleBar::IWCdeTitleBar(std::string title, COLORREF backgroundColor, COLORREF textColor, COLORREF lightColor, COLORREF darkcolor, IWTitleBarEventListener* listener) :
-    IWTitleBar(title, backgroundColor, 13, listener)
+IWCdeTitleBar::IWCdeTitleBar(COLORREF backgroundColor, COLORREF textColor, COLORREF lightColor, COLORREF darkcolor, IWTitleBarEventListener* listener) :
+    IWTitleBar(backgroundColor, 13, listener)
 {
     this->lightColor = lightColor;
     this->darkColor = darkcolor;
@@ -32,13 +32,13 @@ void IWCdeTitleBar::PositionButtons(const CRect& rect)
     titleArea.right = iconifyButtonRect.left;
 }
 
-void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect)
+void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect, CString title)
 {
     Draw3dRect(pdc, titleArea, 1, lightColor, darkColor);
 
     auto oldFont = pdc->SelectObject(this->font);
     pdc->SetTextColor(this->textColor);
     pdc->SetBkMode(TRANSPARENT);
-    pdc->DrawText(_T(this->text.c_str()), -1, titleArea, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    pdc->DrawText(_T(title), -1, titleArea, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
     pdc->SelectObject(oldFont);
 }

@@ -21,21 +21,19 @@ class IWTitleBar : public CStatic
     DECLARE_MESSAGE_MAP()
 
 public:
-    IWTitleBar(std::string title, COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener);
+    IWTitleBar(COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener);
     BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
-    void SetTitle(const std::string& title) { this->text = title; }
 
     virtual ~IWTitleBar() {}
 
 protected:
     virtual void PositionButtons(const CRect& rect) {};
-    virtual void DrawTitle(CDC* pdc, CRect rect) {};
+    virtual void DrawTitle(CDC* pdc, CRect rect, CString title) {};
 
     IWTitleBarBtn* menuButton;
     IWTitleBarBtn* iconifyButton;
     IWTitleBarBtn* resizeButton;
 
-    std::string text;
     CFont font;
 
 private:

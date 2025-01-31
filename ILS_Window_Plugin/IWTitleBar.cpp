@@ -13,10 +13,9 @@ BEGIN_MESSAGE_MAP(IWTitleBar, CStatic)
     ON_COMMAND(IDC_RESIZE_BUTTON, &IWTitleBar::OnResizeButtonPressed)
 END_MESSAGE_MAP()
 
-IWTitleBar::IWTitleBar(std::string title, COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener)
+IWTitleBar::IWTitleBar(COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener)
 {
     this->backgroundColor = backgroundColor;
-    this->text = title;
 
     float fontPointsSize = fontSize * 72 / 96;
     this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
@@ -59,7 +58,11 @@ void IWTitleBar::OnPaint()
     CPaintDC dc(this);
     CRect rect;
     GetClientRect(&rect);
-    DrawTitle(&dc, rect);
+
+    // Get parent window
+    CString title;
+    GetParent()->GetWindowText(title);
+    DrawTitle(&dc, rect, title);
 }
 
 void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)

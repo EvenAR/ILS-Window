@@ -342,7 +342,7 @@ void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 {
     std::unique_lock<std::mutex> lock(approachDataMutex);
     this->selectedApproach = selectedApproach;
-    this->titleBar->SetTitle(selectedApproach.title);
+    this->SetWindowTextA(selectedApproach.title.c_str());
 
     ilsVisualization.SetActiveApproach(this->selectedApproach);
     Invalidate();
