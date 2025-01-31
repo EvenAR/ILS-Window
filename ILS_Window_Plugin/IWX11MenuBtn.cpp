@@ -1,12 +1,8 @@
 #include "pch.h"
-#include "IWMenuBtn.h"
+#include "IWX11MenuBtn.h"
 
-BEGIN_MESSAGE_MAP(IWMenuBtn, CButton)
-    ON_WM_LBUTTONDOWN()
-    ON_WM_ERASEBKGND()
-END_MESSAGE_MAP()
 
-void IWMenuBtn::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 {
     // Calculate the center of the rectangle
     CPoint center = rect.CenterPoint();
@@ -30,22 +26,4 @@ void IWMenuBtn::DrawSymbol(CDC* pDC, CRect rect)
 
     // Restore the previous brush
     pDC->SelectObject(oldBrush);
-}
-
-void IWMenuBtn::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    CPoint screenPoint = point;
-    ClientToScreen(&screenPoint);
-
-    // Get the parent window
-    CWnd* parentWnd = GetParent();
-    if (parentWnd)
-    {
-        parentWnd->SendMessage(WM_LBUTTONDOWN, NULL, MAKELPARAM(screenPoint.x, screenPoint.y));
-    }
-}
-
-BOOL IWMenuBtn::OnEraseBkgnd(CDC* pDC)
-{
-    return TRUE;
 }

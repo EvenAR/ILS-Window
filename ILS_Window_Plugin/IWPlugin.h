@@ -24,7 +24,7 @@ private:
     std::map<std::string, CRect> savedWindowPositions;
     std::map<std::string, int> airportTemperatures;
 
-    void OpenNewWindow(IWApproachDefinition* approach);
+    void ShowWindow(IWApproachDefinition* approach);
     void SyncWithActiveRunways();
     void LoadSavedWindowPositions();
     void ShowErrorMessage(std::string consequence, std::string details);

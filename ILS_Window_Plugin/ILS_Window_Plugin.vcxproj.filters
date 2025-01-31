@@ -13,15 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Theme">
+      <UniqueIdentifier>{06d11cba-76c2-4d9e-8107-6c5da2101bc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Theme\X11">
+      <UniqueIdentifier>{8a7ca98b-50af-466b-a2f2-04eb78eba59e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Theme">
+      <UniqueIdentifier>{687be561-bac8-411d-8e4a-810fa08569b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Theme\X11">
+      <UniqueIdentifier>{c34849c8-8ad4-4f4f-acc9-2f8e9c582a1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Theme\SolarisCDE">
+      <UniqueIdentifier>{a1845d6f-0de7-4b25-9cd4-7b9629d2bf5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Theme\SolarisCDE">
+      <UniqueIdentifier>{f133707e-7c1a-4d8b-8a78-bdfd116acce5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWPluginDLL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="IWTitleBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IWPlugin.cpp">
@@ -33,14 +48,38 @@
     <ClCompile Include="IWTitleBarBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IWCloseBtn.cpp">
+    <ClCompile Include="IWVisualization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IWMenuBtn.cpp">
+    <ClCompile Include="IWTitleBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IWResizeBtn.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="IWCdeIconifyBtn.cpp">
+      <Filter>Source Files\Theme\SolarisCDE</Filter>
+    </ClCompile>
+    <ClCompile Include="IWCdeMenuBtn.cpp">
+      <Filter>Source Files\Theme\SolarisCDE</Filter>
+    </ClCompile>
+    <ClCompile Include="IWCdeTitleBar.cpp">
+      <Filter>Source Files\Theme\SolarisCDE</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11ResizeBtn.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11IconifyBtn.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11MenuBtn.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11TitleBar.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
+    </ClCompile>
+    <ClCompile Include="IWCdeWindow.cpp">
+      <Filter>Source Files\Theme\SolarisCDE</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11Window.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -70,9 +109,6 @@
     <ClInclude Include="IWWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IWTitleBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IWUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,17 +124,44 @@
     <ClInclude Include="..\lib\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IWVisualization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IWCdeMenuBtn.h">
+      <Filter>Header Files\Theme\SolarisCDE</Filter>
+    </ClInclude>
+    <ClInclude Include="IWCdeIconifyBtn.h">
+      <Filter>Header Files\Theme\SolarisCDE</Filter>
+    </ClInclude>
+    <ClInclude Include="IWCdeTitleBar.h">
+      <Filter>Header Files\Theme\SolarisCDE</Filter>
+    </ClInclude>
     <ClInclude Include="IWTitleBarBtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IWCloseBtn.h">
+    <ClInclude Include="IWX11ResizeBtn.h">
+      <Filter>Header Files\Theme\X11</Filter>
+    </ClInclude>
+    <ClInclude Include="IWX11MenuBtn.h">
+      <Filter>Header Files\Theme\X11</Filter>
+    </ClInclude>
+    <ClInclude Include="IWX11IconifyBtn.h">
+      <Filter>Header Files\Theme\X11</Filter>
+    </ClInclude>
+    <ClInclude Include="IWTitleBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IWMenuBtn.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="RenderUtils.h">
+      <Filter>Header Files\Theme\SolarisCDE</Filter>
     </ClInclude>
-    <ClInclude Include="IWResizeBtn.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="IWX11TitleBar.h">
+      <Filter>Header Files\Theme\X11</Filter>
+    </ClInclude>
+    <ClInclude Include="IWCdeWindow.h">
+      <Filter>Header Files\Theme\SolarisCDE</Filter>
+    </ClInclude>
+    <ClInclude Include="IWX11Window.h">
+      <Filter>Header Files\Theme\X11</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

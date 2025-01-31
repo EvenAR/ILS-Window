@@ -115,14 +115,21 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IWCloseBtn.cpp" />
-    <ClCompile Include="IWMenuBtn.cpp" />
-    <ClCompile Include="IWResizeBtn.cpp" />
+    <ClCompile Include="IWCdeMenuBtn.cpp" />
+    <ClCompile Include="IWCdeWindow.cpp" />
+    <ClCompile Include="IWX11IconifyBtn.cpp" />
+    <ClCompile Include="IWCdeIconifyBtn.cpp" />
+    <ClCompile Include="IWX11MenuBtn.cpp" />
+    <ClCompile Include="IWX11ResizeBtn.cpp" />
+    <ClCompile Include="IWTitleBar.cpp" />
     <ClCompile Include="IWTitleBarBtn.cpp" />
     <ClCompile Include="IWPlugin.cpp" />
     <ClCompile Include="IWPluginDLL.cpp" />
     <ClCompile Include="IWWindow.cpp" />
-    <ClCompile Include="IWTitleBar.cpp" />
+    <ClCompile Include="IWCdeTitleBar.cpp" />
+    <ClCompile Include="IWVisualization.cpp" />
+    <ClCompile Include="IWX11TitleBar.cpp" />
+    <ClCompile Include="IWX11Window.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -136,16 +143,24 @@
     <ClInclude Include="..\lib\EuroScopePlugIn.h" />
     <ClInclude Include="..\lib\json.hpp" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="IWCloseBtn.h" />
-    <ClInclude Include="IWMenuBtn.h" />
-    <ClInclude Include="IWResizeBtn.h" />
+    <ClInclude Include="IWCdeMenuBtn.h" />
+    <ClInclude Include="IWCdeWindow.h" />
+    <ClInclude Include="IWX11IconifyBtn.h" />
+    <ClInclude Include="IWCdeIconifyBtn.h" />
+    <ClInclude Include="IWX11MenuBtn.h" />
+    <ClInclude Include="IWX11ResizeBtn.h" />
+    <ClInclude Include="IWTitleBar.h" />
     <ClInclude Include="IWTitleBarBtn.h" />
     <ClInclude Include="IWPluginDLL.h" />
     <ClInclude Include="IWDataTypes.h" />
     <ClInclude Include="IWPlugin.h" />
     <ClInclude Include="IWWindow.h" />
-    <ClInclude Include="IWTitleBar.h" />
+    <ClInclude Include="IWCdeTitleBar.h" />
+    <ClInclude Include="IWVisualization.h" />
+    <ClInclude Include="IWX11TitleBar.h" />
+    <ClInclude Include="IWX11Window.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="IWUtils.h" />
