@@ -7,10 +7,6 @@
 
 class IWWindow;
 
-struct RGB {
-    int r, g, b;
-};
-
 struct IWTargetPosition {
     int trueAltitude;
     double latitude;
@@ -50,16 +46,16 @@ enum IWTagMode {
 };
 
 struct IWStyling {
-    RGB windowFrameColor;
-    RGB windowFrameTextColor;
-    RGB windowOuterFrameColor;
-    RGB backgroundColor;
-    RGB glideslopeColor;
-    RGB localizerColor;
-    RGB radarTargetColor;
-    RGB historyTrailColor;
-    RGB targetLabelColor;
-    RGB rangeStatusTextColor;
+    COLORREF windowFrameColor;
+    COLORREF windowFrameTextColor;
+    COLORREF windowOuterFrameColor;
+    COLORREF backgroundColor;
+    COLORREF glideslopeColor;
+    COLORREF localizerColor;
+    COLORREF radarTargetColor;
+    COLORREF historyTrailColor;
+    COLORREF targetLabelColor;
+    COLORREF rangeStatusTextColor;
     unsigned int fontSize;
     bool showTagByDefault;
     IWTagMode defaultTagMode;

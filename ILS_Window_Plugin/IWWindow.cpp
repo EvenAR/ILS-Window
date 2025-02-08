@@ -27,6 +27,9 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_ERASEBKGND()
     ON_WM_NCACTIVATE()
     ON_WM_GETMINMAXINFO()
+    ON_WM_INITMENUPOPUP()
+    ON_WM_MEASUREITEM()
+    ON_WM_DRAWITEM()
     ON_MESSAGE(WM_EXITSIZEMOVE, &IWWindow::OnExitSizeMove)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
@@ -41,9 +44,9 @@ IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int
     , TITLE_BAR_HEIGHT(titleBarHeight)
     , WINDOW_BORDER_THICKNESS(windowBorderThickness)
     , WINDOW_OUTER_BORDER_WIDTH(windowOuterBorderThickness)
-    , textColor(RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b))
-    , windowBorderColor(RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b))
-    , windowOuterBorderColor(RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b))
+    , textColor(styling.windowFrameTextColor)
+    , windowBorderColor(styling.windowFrameColor)
+    , windowOuterBorderColor(styling.windowOuterFrameColor)
 {
     float fontPointsSize = styling.fontSize * 72 / 96;
     this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
@@ -378,7 +381,7 @@ void IWWindow::CreatePopupMenu(CPoint point)
     }
 
     menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect.m_hMenu, _T("View"));
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew.m_hMenu, _T("Open"));
+    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew.m_hMenu, _T("New window"));
 
     // Add static menu items
     menu.AppendMenu(
@@ -461,3 +464,46 @@ void IWWindow::OnProcedureSelected(UINT nID)
     Invalidate();
 }
 
+void IWWindow::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
+{
+    CWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
+
+    if (!bSysMenu)  // Apply only to application menus
+    {
+        for (int i = 0; i < pPopupMenu->GetMenuItemCount(); ++i)
+        {
+            MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
+            mii.fMask = MIIM_FTYPE;
+            pPopupMenu->GetMenuItemInfo(i, &mii, TRUE);
+            mii.fType |= MFT_OWNERDRAW;
+            pPopupMenu->SetMenuItemInfo(i, &mii, TRUE);
+        }
+    }
+}
+
+void IWWindow::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+{
+    lpMeasureItemStruct->itemHeight = 24;  // Adjust height
+    lpMeasureItemStruct->itemWidth = 350;  // Adjust width
+}
+
+void IWWindow::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+    if (lpDrawItemStruct->CtlType == ODT_MENU)  // Check if it's a menu item
+    {
+        CDC* pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
+        CRect rect = lpDrawItemStruct->rcItem;
+        bool isHovered = lpDrawItemStruct->itemState & ODS_SELECTED;
+        bool isChecked = lpDrawItemStruct->itemState & ODS_CHECKED;
+
+        CString menuText;
+        ::GetMenuString((HMENU)lpDrawItemStruct->hwndItem, lpDrawItemStruct->itemID, menuText.GetBuffer(256), 256, MF_BYCOMMAND);
+        menuText.ReleaseBuffer();
+
+        this->DrawMenuItem(pDC, rect, menuText, isHovered, isChecked);
+    }
+    else
+    {
+        CWnd::OnDrawItem(nIDCtl, lpDrawItemStruct);
+    }
+}

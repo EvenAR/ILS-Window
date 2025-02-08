@@ -19,23 +19,23 @@ std::string stringToUpper(std::string s)
     return s;
 }
 
-RGB HexToRGB(const std::string& hexColor) {
-    RGB color = { 0, 0, 0 };
+COLORREF HexToRGB(const std::string& hexColor) {
+    int red, green, blue;
 
     if (hexColor.size() == 7 && hexColor[0] == '#') {
         // Extract each color component from the hex string
         std::stringstream ss;
         ss << std::hex << hexColor.substr(1, 2); // Red
-        ss >> color.r;
+        ss >> red;
         ss.clear();
 
         ss << std::hex << hexColor.substr(3, 2); // Green
-        ss >> color.g;
+        ss >> green;
         ss.clear();
 
         ss << std::hex << hexColor.substr(5, 2); // Blue
-        ss >> color.b;
+        ss >> blue;
     }
 
-    return color;
+    return RGB(red, green, blue);
 }

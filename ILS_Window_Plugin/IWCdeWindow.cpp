@@ -8,8 +8,8 @@ IWCdeWindow::IWCdeWindow(IWApproachDefinition selectedApproach, IWStyling stylin
     , lightColor(AdjustColorBrightness(styling.windowFrameColor, 1.4))
     , darkColor(AdjustColorBrightness(styling.windowFrameColor, 0.4))
 {
-    COLORREF textColor = RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b);
-    this->titleBar = new IWCdeTitleBar(windowBorderColor, textColor, lightColor, darkColor, this);
+    this->titleBar = new IWCdeTitleBar(windowBorderColor, styling.windowFrameTextColor, lightColor, darkColor, this);
+    this->menuFont.CreatePointFont(100, _T("EuroScope"));
 }
 
 int IWCdeWindow::GetEdgeCursorPosition(CPoint point)
@@ -130,12 +130,14 @@ void IWCdeWindow::DrawBorder(CDC* pdc, CRect rect)
     Draw3dCorner(pdc, bottomLeftCornerRect, WINDOW_BORDER_THICKNESS, border3dSteps, lightColor, darkColor, false, true);
 }
 
-COLORREF IWCdeWindow::AdjustColorBrightness(RGB color, double factor)
+COLORREF IWCdeWindow::AdjustColorBrightness(COLORREF color, double factor)
 {
+    GetRValue(color);
+
     // Adjust each component
-    int red = static_cast<int>(color.r * factor);
-    int green = static_cast<int>(color.g * factor);
-    int blue = static_cast<int>(color.b * factor);
+    int red = GetRValue(color) * factor;
+    int green = GetGValue(color) * factor;
+    int blue = GetBValue(color) * factor;
 
     // Ensure the components are within the valid range
     red = max(0, min(255, red));
@@ -144,4 +146,33 @@ COLORREF IWCdeWindow::AdjustColorBrightness(RGB color, double factor)
 
     // Combine them back into a COLORREF
     return RGB(red, green, blue);
+}
+
+void IWCdeWindow::DrawMenuItem(CDC* pdc, CRect bounds, CString text, bool isHovered, bool isChecked)
+{
+    COLORREF bgColor = isHovered ? RGB(130, 130, 130) : RGB(152, 152, 152);
+    COLORREF textColor = RGB(255, 255, 255);  // White text
+
+    std::string fullText = isChecked ? "¤ " : "  ";
+    fullText += text;
+
+    CBrush brush(bgColor);
+    pdc->FillRect(&bounds, &brush);
+
+    if (isHovered) {
+        COLORREF darkened = AdjustColorBrightness(bgColor, 0.6);
+        COLORREF lightened = AdjustColorBrightness(bgColor, 1.4);
+        Draw3dRect(pdc, bounds, 2, darkened, lightened);
+    }
+
+    // Draw text
+    pdc->SetTextColor(textColor);
+    pdc->SetBkMode(TRANSPARENT);
+
+    CRect textArea = bounds;
+    textArea.left += 10;
+
+    CFont* oldFont = pdc->SelectObject(&menuFont);
+    pdc->DrawText(fullText.c_str(), &textArea, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    pdc->SelectObject(&oldFont);
 }

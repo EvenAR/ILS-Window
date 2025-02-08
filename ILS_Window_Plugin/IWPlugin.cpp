@@ -331,7 +331,7 @@ IWStyling IWPlugin::ReadStyling(const std::string& jsonFilePath) {
     nlohmann::json jsonData;
     file >> jsonData;
 
-    auto readColor = [&jsonData, &generalErrorMessage, this](const std::string& key) -> RGB {
+    auto readColor = [&jsonData, &generalErrorMessage, this](const std::string& key) -> COLORREF {
         if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
             return HexToRGB(jsonData["styling"][key].get<std::string>());
         }

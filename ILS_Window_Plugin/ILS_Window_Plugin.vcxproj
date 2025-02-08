@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="IWCdeMenuBtn.cpp" />
     <ClCompile Include="IWCdeWindow.cpp" />
+    <ClCompile Include="IWContextMenu.cpp" />
     <ClCompile Include="IWX11IconifyBtn.cpp" />
     <ClCompile Include="IWCdeIconifyBtn.cpp" />
     <ClCompile Include="IWX11MenuBtn.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="IWCdeMenuBtn.h" />
     <ClInclude Include="IWCdeWindow.h" />
+    <ClInclude Include="IWContextMenu.h" />
     <ClInclude Include="IWX11IconifyBtn.h" />
     <ClInclude Include="IWCdeIconifyBtn.h" />
     <ClInclude Include="IWX11MenuBtn.h" />

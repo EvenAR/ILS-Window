@@ -81,6 +81,9 @@
     <ClCompile Include="IWX11Window.cpp">
       <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
+    <ClCompile Include="IWContextMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ILS_Window_Plugin.def">
@@ -162,6 +165,9 @@
     </ClInclude>
     <ClInclude Include="IWX11Window.h">
       <Filter>Header Files\Theme\X11</Filter>
+    </ClInclude>
+    <ClInclude Include="IWContextMenu.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

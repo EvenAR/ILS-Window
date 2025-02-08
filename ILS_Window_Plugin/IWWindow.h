@@ -36,6 +36,7 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
     protected:
         virtual void DrawBorder(CDC* pdc, CRect windowRect) = 0;
         virtual int GetEdgeCursorPosition(CPoint point) = 0;
+        virtual void DrawMenuItem(CDC* pdc, CRect bounds, CString text, bool isHovered, bool isChecked) = 0;
         
         const int TITLE_BAR_HEIGHT;
         const int WINDOW_BORDER_THICKNESS;
@@ -80,8 +81,13 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
         afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+        afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+        afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+        afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 
         BOOL OnMenuOptionSelected(UINT nID);
         void OnProcedureSelected(UINT nID);
         CRect GetClientRectBelowTitleBar();
+
+        CMenu popupMenu;
 };
