@@ -13,6 +13,5 @@ private:
 
     COLORREF menuBgColor;
     COLORREF menuTextColor;
-    CFont menuFont;
 };
 

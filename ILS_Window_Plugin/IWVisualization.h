@@ -17,7 +17,7 @@
 class IWVisualization : public CWnd
 {
 public:
-    IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* font);
+    IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* mainFont);
     void DrawGlideslopeAndLocalizer(CDC& dc);
     void DrawRadarTargets(CDC& dc);
     void DrawCurrentZoomValue(CDC& dc);
@@ -64,7 +64,7 @@ private:
     CPen radarTargetPen;
     CPen historyTrailPen;
     IWTagMode tagMode;
-    CFont* font;
+    CFont* mainFont;
 
     std::set<std::string> clickedTargets;
 

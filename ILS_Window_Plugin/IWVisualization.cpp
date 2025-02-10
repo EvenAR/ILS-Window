@@ -12,7 +12,7 @@ BEGIN_MESSAGE_MAP(IWVisualization, CWnd)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* font)
+IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* mainFont)
 {
     this->selectedApproach = selectedApproach;
     this->approachLength = selectedApproach.defaultRange;
@@ -30,7 +30,7 @@ IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStylin
     this->radarTargetPen.CreatePen(PS_SOLID, 1, styling.radarTargetColor);
     this->historyTrailPen.CreatePen(PS_SOLID, 1, styling.historyTrailColor);
 
-    this->font = font;
+    this->mainFont = mainFont;
 }
 
 
@@ -52,7 +52,7 @@ void IWVisualization::OnPaint()
     memDC.FillSolidRect(rect, windowBackground);
 
     // Select font
-    CFont* oldFont = memDC.SelectObject(font);
+    CFont* oldFont = memDC.SelectObject(mainFont);
 
     // Perform all drawing operations on memDC instead of dc
     DrawGlideslopeAndLocalizer(memDC);

@@ -8,7 +8,7 @@ IWX11Window::IWX11Window(IWApproachDefinition selectedApproach, IWStyling stylin
     this->titleBar = new IWX11TitleBar(windowBorderColor, textColor, this);
     this->menuBgColor = styling.windowFrameColor;
     this->menuTextColor = styling.windowFrameTextColor;
-    this->menuFont.CreatePointFont(100, _T("EuroScope"));
+    this->extraMenuItemWidth = 20;
 }
 
 void IWX11Window::DrawBorder(CDC* pdc, CRect windowRect)
@@ -45,7 +45,7 @@ void IWX11Window::DrawMenuItem(CDC* pdc, CRect bounds, CString text, bool isHove
     CRect textArea = bounds;
     textArea.left += 10;
 
-    CFont* oldFont = pdc->SelectObject(&menuFont);
+    CFont* oldFont = pdc->SelectObject(&mainFont);
     pdc->DrawText(fullText.c_str(), &textArea, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
     pdc->SelectObject(&oldFont);
 }

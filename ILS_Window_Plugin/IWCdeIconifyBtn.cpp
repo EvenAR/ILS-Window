@@ -19,6 +19,6 @@ void IWCdeIconifyBtn::DrawSymbol(CDC* pdc, CRect rect)
     icon.top = buttonFrame.top + buttonFrame.Width() * 0.4;
     icon.bottom = buttonFrame.bottom - buttonFrame.Width() * 0.4;
 
-    Draw3dRect(pdc, buttonFrame, 1, lightColor, darkColor);
-    Draw3dRect(pdc, icon, 1, lightColor, darkColor);
+    DrawThick3dRect(pdc, buttonFrame, 1, lightColor, darkColor);
+    DrawThick3dRect(pdc, icon, 1, lightColor, darkColor);
 }

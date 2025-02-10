@@ -4,6 +4,7 @@
 #include "RenderUtils.h"
 #include "IWX11TitleBar.h"
 #include "IWCdeTitleBar.h"
+#include <memory>
 
 #define MAX_PROCEDURES 100
 
@@ -40,7 +41,7 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
 END_MESSAGE_MAP()
 
 IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int titleBarHeight, int windowBorderThickness, int windowOuterBorderThickness)
-    : ilsVisualization(selectedApproach, styling, &this->font)
+    : ilsVisualization(selectedApproach, styling, &this->mainFont)
     , TITLE_BAR_HEIGHT(titleBarHeight)
     , WINDOW_BORDER_THICKNESS(windowBorderThickness)
     , WINDOW_OUTER_BORDER_WIDTH(windowOuterBorderThickness)
@@ -49,8 +50,7 @@ IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int
     , windowOuterBorderColor(styling.windowOuterFrameColor)
 {
     float fontPointsSize = styling.fontSize * 72 / 96;
-    this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
-
+    this->mainFont.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
     this->selectedApproach = selectedApproach;
 }
 
@@ -356,35 +356,31 @@ void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 
 void IWWindow::CreatePopupMenu(CPoint point)
 {
-    // Create the main popup menu
-    CMenu menu;
-    menu.CreatePopupMenu();
+    // Dynamically allocate menu to persist beyond this function
+    popupMenu = std::make_unique<CMenu>();
+    popupMenu->CreatePopupMenu();
 
-    // Create the submenu with the available approaches
-    CMenu subMenuSelect;
-    CMenu subMenuOpenNew;
-    subMenuSelect.CreatePopupMenu();
-    subMenuOpenNew.CreatePopupMenu();
+    // Submenus
+    auto subMenuSelect = std::make_unique<CMenu>();
+    auto subMenuOpenNew = std::make_unique<CMenu>();
+    subMenuSelect->CreatePopupMenu();
+    subMenuOpenNew->CreatePopupMenu();
 
     int idCounter = 0;
     for (const IWApproachDefinition& approach : availableApproaches)
     {
-        bool isActive = approach.title == this->selectedApproach.title;
-        int menuItemID = idCounter++;
-        if (isActive) {
-            subMenuSelect.AppendMenu(MF_STRING | MF_CHECKED, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
-        }
-        else {
-            subMenuSelect.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
-        }
-        subMenuOpenNew.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_NEW_START + menuItemID, CString(approach.title.c_str()));
+        bool isActive = (approach.title == this->selectedApproach.title);
+        int menuItemID = MENU_ITEM_PROCEDURES_SEL_START + idCounter++;
+
+        subMenuSelect->AppendMenu(MF_STRING | (isActive ? MF_CHECKED : 0), menuItemID, CString(approach.title.c_str()));
+        subMenuOpenNew->AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_NEW_START + menuItemID, CString(approach.title.c_str()));
     }
 
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect.m_hMenu, _T("View"));
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew.m_hMenu, _T("New window"));
+    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("View"));
+    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew->Detach(), _T("New window"));
 
     // Add static menu items
-    menu.AppendMenu(
+    popupMenu->AppendMenu(
         MF_STRING | (ilsVisualization.GetShowTagsByDefault() ? MF_CHECKED : MF_UNCHECKED),
         MENU_ITEM_SHOW_LABELS,
         _T("Show labels by default")
@@ -392,31 +388,25 @@ void IWWindow::CreatePopupMenu(CPoint point)
 
     auto airportTemperature = m_latestLiveData.airportTemperatures.find(selectedApproach.airport);
     auto airportTemperatureMenuText =
-        "Apply temperature correction (" 
-        + selectedApproach.airport + ": " 
-        + (airportTemperature != m_latestLiveData.airportTemperatures.end() ? std::to_string(airportTemperature->second) + "°C" : "N/A") 
+        "Apply temperature correction ("
+        + selectedApproach.airport + ": "
+        + (airportTemperature != m_latestLiveData.airportTemperatures.end() ? std::to_string(airportTemperature->second) + "°C" : "N/A")
         + ")";
 
-    menu.AppendMenu(
+    popupMenu->AppendMenu(
         MF_STRING | (ilsVisualization.GetApplyTemperatureCorrection() ? MF_CHECKED : MF_UNCHECKED),
         MENU_ITEM_CORRECT_FOR_TEMPERATURE,
-        _T(airportTemperatureMenuText.c_str())
+        airportTemperatureMenuText.c_str()
     );
-    menu.AppendMenu(
-        MF_STRING,
-        MENU_ITEM_FLIP,
-        _T("Change orientation")
-    );
+    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_FLIP, _T("Change orientation"));
+    popupMenu->AppendMenu(MF_STRING | MF_REMOVE, MENU_ITEM_CLOSE, _T("Close"));
 
-    menu.AppendMenu(
-        MF_STRING | MF_REMOVE,
-        MENU_ITEM_CLOSE,
-        _T("Close")
-    );
-  
-    // Display the menu
-    menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+    popupHMenu = popupMenu->GetSafeHmenu();
+
+    // Show the menu
+    popupMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }
+
 
 BOOL IWWindow::OnMenuOptionSelected(UINT nID)
 {
@@ -483,8 +473,23 @@ void IWWindow::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 
 void IWWindow::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 {
-    lpMeasureItemStruct->itemHeight = 24;  // Adjust height
-    lpMeasureItemStruct->itemWidth = 350;  // Adjust width
+    if (!popupHMenu) return;
+
+    CMenu* pMenu = CMenu::FromHandle(popupHMenu);
+    if (!pMenu) return;
+
+    CString menuText;
+    pMenu->GetMenuString(lpMeasureItemStruct->itemID, menuText, MF_BYCOMMAND);
+
+    CDC* pDC = GetDC();
+    CFont* pOldFont = pDC->SelectObject(&mainFont);
+
+    CSize textSize = pDC->GetTextExtent(menuText);
+    lpMeasureItemStruct->itemWidth = textSize.cx + extraMenuItemWidth;
+    lpMeasureItemStruct->itemHeight = 24;
+
+    pDC->SelectObject(pOldFont);
+    ReleaseDC(pDC);
 }
 
 void IWWindow::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)

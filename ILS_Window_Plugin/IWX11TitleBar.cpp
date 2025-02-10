@@ -52,7 +52,7 @@ void IWX11TitleBar::DrawTitle(CDC* pdc, CRect rect, CString title)
 {
     CRect textArea = rect;
     textArea.left += 5;
-    auto oldFont = pdc->SelectObject(this->font);
+    auto oldFont = pdc->SelectObject(this->mainFont);
     pdc->SetTextColor(this->textColor);
     pdc->SetBkMode(TRANSPARENT);
     pdc->DrawText(_T(title), -1, textArea, DT_LEFT | DT_VCENTER | DT_SINGLELINE);

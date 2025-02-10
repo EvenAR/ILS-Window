@@ -16,5 +16,4 @@ private:
 
     const COLORREF lightColor;
     const COLORREF darkColor;
-    CFont menuFont;
 };

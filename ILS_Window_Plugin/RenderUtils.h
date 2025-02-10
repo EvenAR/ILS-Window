@@ -2,22 +2,15 @@
 
 #include <afxwin.h>
 
-inline void Draw3dRect(CDC* pDC, CRect rect, int steps, COLORREF lightColor, COLORREF darkColor) 
+inline void DrawThick3dRect(CDC* pDC, CRect rect, int steps, COLORREF lightColor, COLORREF darkColor) 
 {
     for (int drawnSunkSteps = 0; drawnSunkSteps < steps; drawnSunkSteps++) {
-        // Draw the top-left border (light color)
-        pDC->FillSolidRect(rect.left, rect.top, rect.Width(), 1, lightColor); // Top
-        pDC->FillSolidRect(rect.left, rect.top, 1, rect.Height(), lightColor); // Left
-
-        // Draw the bottom-right border (dark color)
-        pDC->FillSolidRect(rect.right - 1, rect.top, 1, rect.Height(), darkColor); // Right
-        pDC->FillSolidRect(rect.left, rect.bottom - 1, rect.Width(), 1, darkColor); // Bottom
-
+        pDC->Draw3dRect(rect, lightColor, darkColor);
         rect.DeflateRect(1, 1);
     }
 }
 
-inline void Draw3dCorner(CDC* pDC, CRect rect, int borderWidth, int steps, COLORREF lightColor, COLORREF darkColor, bool isTop, bool isLeft)
+inline void DrawThick3dCorner(CDC* pDC, CRect rect, int borderWidth, int steps, COLORREF lightColor, COLORREF darkColor, bool isTop, bool isLeft)
 {
     CPen lightPen(PS_SOLID, 1, lightColor);
     CPen darkPen(PS_SOLID, 1, darkColor);

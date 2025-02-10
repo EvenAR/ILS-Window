@@ -34,9 +34,9 @@ void IWCdeTitleBar::PositionButtons(const CRect& rect)
 
 void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect, CString title)
 {
-    Draw3dRect(pdc, titleArea, 1, lightColor, darkColor);
+    DrawThick3dRect(pdc, titleArea, 1, lightColor, darkColor);
 
-    auto oldFont = pdc->SelectObject(this->font);
+    auto oldFont = pdc->SelectObject(this->mainFont);
     pdc->SetTextColor(this->textColor);
     pdc->SetBkMode(TRANSPARENT);
     pdc->DrawText(_T(title), -1, titleArea, DT_CENTER | DT_VCENTER | DT_SINGLELINE);

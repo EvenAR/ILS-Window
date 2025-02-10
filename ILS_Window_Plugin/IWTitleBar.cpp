@@ -18,7 +18,7 @@ IWTitleBar::IWTitleBar(COLORREF backgroundColor, int fontSize, IWTitleBarEventLi
     this->backgroundColor = backgroundColor;
 
     float fontPointsSize = fontSize * 72 / 96;
-    this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
+    this->mainFont.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
     this->eventListener = listener;
 }
 

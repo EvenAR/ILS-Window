@@ -46,11 +46,13 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         const COLORREF windowOuterBorderColor;
 
         IWTitleBar* titleBar;
+        CFont mainFont;
+
+        int extraMenuItemWidth = 0;
 
     private:
 
         IWVisualization ilsVisualization;
-        CFont font;
 
         void CreatePopupMenu(CPoint point);
 
@@ -89,5 +91,6 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         void OnProcedureSelected(UINT nID);
         CRect GetClientRectBelowTitleBar();
 
-        CMenu popupMenu;
+        std::shared_ptr<CMenu> popupMenu;
+        HMENU popupHMenu;
 };
