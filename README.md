@@ -24,7 +24,7 @@ The plugin reads a JSON configuration file when the plugin is loaded. For detail
 
 ## Screenshots
 
-The "X11" window style is shown on the left side and "CDE" window style is shown on the right side:
+The first image shows an example using the "X11" window style. In the second image the "CDE" window style is used.
 
 ![image](https://github.com/user-attachments/assets/6dc74ee9-8536-46ee-a3ff-6e04dc470536) ![Screenshot 2025-02-12 215106](https://github.com/user-attachments/assets/0fa96a95-b088-4f0c-92d3-fc6df11aef1e)
 
