@@ -231,7 +231,7 @@ BOOL IWVisualization::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     {
         this->approachLength -= 1;
     }
-    else if (zDelta < 0 && this->approachLength < 50)
+    else if (zDelta < 0 && this->approachLength < MAX_RANGE)
     {
         this->approachLength += 1;
     }
