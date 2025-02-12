@@ -12,6 +12,7 @@
 #define MENU_ITEM_SHOW_LABELS               10001
 #define MENU_ITEM_CORRECT_FOR_TEMPERATURE   10002
 #define MENU_ITEM_CLOSE                     10003
+#define MENU_ITEM_TOGGLE_THEME              10004
 #define MENU_ITEM_PROCEDURES_SEL_START      20000
 #define MENU_ITEM_PROCEDURES_NEW_START      30000
 
@@ -36,6 +37,7 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_CORRECT_FOR_TEMPERATURE, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_CLOSE, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_TOGGLE_THEME, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
@@ -408,6 +410,7 @@ void IWWindow::CreatePopupMenu(CPoint point)
         airportTemperatureMenuText.c_str()
     );
     popupMenu->AppendMenu(MF_STRING, MENU_ITEM_FLIP, _T("Change orientation"));
+    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_TOGGLE_THEME, _T("Toggle window style"));
     popupMenu->AppendMenu(MF_STRING | MF_REMOVE, MENU_ITEM_CLOSE, _T("Close"));
 
     popupHMenu = popupMenu->GetSafeHmenu();
@@ -437,6 +440,10 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
     else if (nID == MENU_ITEM_CLOSE)
     {
         this->DestroyWindow();
+    }
+    else if (nID == MENU_ITEM_TOGGLE_THEME)
+    {
+        this->m_listener->OnToggleThemeClicked(this);
     }
     return TRUE;
 }

@@ -20,6 +20,7 @@ public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
     virtual void OnWindowMenuOpenNew(std::string title) = 0;
     virtual void OnWindowRectangleChanged(IWWindow* window) = 0;
+    virtual void OnToggleThemeClicked(IWWindow* window) = 0;
 };
 
 class IWWindow : public CWnd, public IWTitleBarEventListener {
@@ -87,8 +88,10 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
         afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 
+        // Custom menu handling
         BOOL OnMenuOptionSelected(UINT nID);
         void OnProcedureSelected(UINT nID);
+
         CRect GetClientRectBelowTitleBar();
 
         std::shared_ptr<CMenu> popupMenu;

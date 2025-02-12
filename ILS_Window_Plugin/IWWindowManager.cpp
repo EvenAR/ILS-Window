@@ -22,11 +22,6 @@ IWWindowManager::IWWindowManager(IWSettings* settings)
         return;
 }
 
-void IWWindowManager::SetTheme(IWTheme newTheme)
-{
-    // TODO
-}
-
 void IWWindowManager::OnWindowClosed(IWWindow* window)
 {
     auto it = std::find(windows.begin(), windows.end(), window);
@@ -62,7 +57,53 @@ void IWWindowManager::OnWindowRectangleChanged(IWWindow* window)
     this->settings->StoreWindowPositon(name, windowRect);
 }
 
+void IWWindowManager::OnToggleThemeClicked(IWWindow* window)
+{
+    // Close and repoen the window with the other theme
+    auto it = std::find(windows.begin(), windows.end(), window);
+
+    if (it != windows.end()) {
+        auto activeApproachName = window->GetActiveApproachName();
+        auto activeApproach = LookupApproach(activeApproachName);
+
+        auto isX11 = dynamic_cast<IWX11Window*>(window) != nullptr;
+        window->DestroyWindow();
+
+        if (isX11) {
+            OpenApproachViewWithTheme(activeApproach, IWTheme::CDE);
+        }
+        else {
+            OpenApproachViewWithTheme(activeApproach, IWTheme::X11);
+        }
+    }
+}
+
+IWApproachDefinition IWWindowManager::LookupApproach(std::string approachName)
+{
+    auto availableApproaches = this->settings->GetAvailableApproaches();
+    auto it = std::find_if(availableApproaches.begin(), availableApproaches.end(),
+        [&approachName](const IWApproachDefinition& approach) {
+            return approach.title == approachName;
+        });
+    if (it != availableApproaches.end()) {
+        return *it;
+    }
+    return availableApproaches[0];
+}
+
 void IWWindowManager::OpenApproachView(IWApproachDefinition approach)
+{
+    std::string windowStyle = this->settings->GetConfig().behaviour.windowStyle;
+
+    if (windowStyle == "X11") {
+        OpenApproachViewWithTheme(approach, IWTheme::X11);
+    }
+    else {
+        OpenApproachViewWithTheme(approach, IWTheme::CDE);
+    }
+}
+
+void IWWindowManager::OpenApproachViewWithTheme(IWApproachDefinition approach, IWTheme theme)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
@@ -104,11 +145,14 @@ void IWWindowManager::OpenApproachView(IWApproachDefinition approach)
     }
 
     IWWindow* newWindow = nullptr;
-    if (this->settings->GetConfig().behaviour.windowStyle == "X11") {
+
+    switch (theme) {
+    case IWTheme::X11:
         newWindow = new IWX11Window(approach, this->settings->GetConfig().styling);
-    }
-    else {
+        break;
+    case IWTheme::CDE:
         newWindow = new IWCdeWindow(approach, this->settings->GetConfig().styling);
+        break;
     }
 
     auto hwndPopup = newWindow->CreateEx(
@@ -177,7 +221,7 @@ void IWWindowManager::SyncWithActiveRunways(std::vector<IWActiveRunway> activeRu
     for (auto& approach : approachesThatShouldBeOpen) {
         bool alreadyOpen = std::any_of(windows.begin(), windows.end(), [&approach](const IWWindow* window) {
             return window->GetActiveApproachName() == approach.title;
-            });
+        });
 
         if (!alreadyOpen) {
             this->OpenApproachView(approach);
