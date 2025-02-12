@@ -387,8 +387,8 @@ void IWWindow::CreatePopupMenu(CPoint point)
         idCounter++;
     }
 
-    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("View"));
-    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew->Detach(), _T("New window"));
+    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("ILS"));
+    //popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew->Detach(), _T("New window"));
 
     // Add static menu items
     popupMenu->AppendMenu(
