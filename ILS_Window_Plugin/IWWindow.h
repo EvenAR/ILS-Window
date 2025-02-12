@@ -20,6 +20,7 @@ public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
     virtual void OnWindowMenuOpenNew(std::string title) = 0;
     virtual void OnWindowRectangleChanged(IWWindow* window) = 0;
+    virtual void OnToggleThemeClicked(IWWindow* window) = 0;
 };
 
 class IWWindow : public CWnd, public IWTitleBarEventListener {
@@ -36,6 +37,7 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
     protected:
         virtual void DrawBorder(CDC* pdc, CRect windowRect) = 0;
         virtual int GetEdgeCursorPosition(CPoint point) = 0;
+        virtual void DrawMenuItem(CDC* pdc, CRect bounds, CString text, bool isHovered, bool isChecked) = 0;
         
         const int TITLE_BAR_HEIGHT;
         const int WINDOW_BORDER_THICKNESS;
@@ -45,11 +47,13 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         const COLORREF windowOuterBorderColor;
 
         IWTitleBar* titleBar;
+        CFont mainFont;
+
+        int extraMenuItemWidth = 0;
 
     private:
 
         IWVisualization ilsVisualization;
-        CFont font;
 
         void CreatePopupMenu(CPoint point);
 
@@ -80,8 +84,16 @@ class IWWindow : public CWnd, public IWTitleBarEventListener {
         afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
         afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
         afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+        afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+        afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+        afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 
+        // Custom menu handling
         BOOL OnMenuOptionSelected(UINT nID);
         void OnProcedureSelected(UINT nID);
+
         CRect GetClientRectBelowTitleBar();
+
+        std::shared_ptr<CMenu> popupMenu;
+        HMENU popupHMenu;
 };

@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "IWX11ResizeBtn.h"
 
-void IWX11ResizeBtn::DrawSymbol(CDC* pDC, CRect rect) {
+void IWX11ResizeBtn::DrawIcon(CDC* pDC, CRect rect) {
     // Create a 1px black pen
-    CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
+    CPen pen(PS_SOLID, 1, this->iconColor);
     CPen* oldPen = pDC->SelectObject(&pen);
 
     // Draw first small rectangle (1/3 size)

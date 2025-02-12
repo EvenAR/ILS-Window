@@ -12,7 +12,7 @@ BEGIN_MESSAGE_MAP(IWVisualization, CWnd)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* font)
+IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* mainFont)
 {
     this->selectedApproach = selectedApproach;
     this->approachLength = selectedApproach.defaultRange;
@@ -22,15 +22,15 @@ IWVisualization::IWVisualization(IWApproachDefinition selectedApproach, IWStylin
     this->applyTemperatureCorrection = true;
     this->tagMode = styling.defaultTagMode;
 
-    this->rangeStatusTextColor = RGB(styling.rangeStatusTextColor.r, styling.rangeStatusTextColor.g, styling.rangeStatusTextColor.b);
-    this->windowBackground = RGB(styling.backgroundColor.r, styling.backgroundColor.g, styling.backgroundColor.b);
-    this->targetLabelColor = RGB(styling.targetLabelColor.r, styling.targetLabelColor.g, styling.targetLabelColor.b);
-    this->glideSlopePen.CreatePen(PS_SOLID, 1, RGB(styling.glideslopeColor.r, styling.glideslopeColor.g, styling.glideslopeColor.b));
-    this->localizerBrush.CreateSolidBrush(RGB(styling.localizerColor.r, styling.localizerColor.g, styling.localizerColor.b));
-    this->radarTargetPen.CreatePen(PS_SOLID, 1, RGB(styling.radarTargetColor.r, styling.radarTargetColor.g, styling.radarTargetColor.b));
-    this->historyTrailPen.CreatePen(PS_SOLID, 1, RGB(styling.historyTrailColor.r, styling.historyTrailColor.g, styling.historyTrailColor.b));
+    this->rangeStatusTextColor = styling.rangeStatusTextColor;
+    this->windowBackground = styling.backgroundColor;
+    this->targetLabelColor = styling.targetLabelColor;
+    this->glideSlopePen.CreatePen(PS_SOLID, 1, styling.glideslopeColor);
+    this->localizerBrush.CreateSolidBrush(styling.localizerColor);
+    this->radarTargetPen.CreatePen(PS_SOLID, 1, styling.radarTargetColor);
+    this->historyTrailPen.CreatePen(PS_SOLID, 1, styling.historyTrailColor);
 
-    this->font = font;
+    this->mainFont = mainFont;
 }
 
 
@@ -52,7 +52,7 @@ void IWVisualization::OnPaint()
     memDC.FillSolidRect(rect, windowBackground);
 
     // Select font
-    CFont* oldFont = memDC.SelectObject(font);
+    CFont* oldFont = memDC.SelectObject(mainFont);
 
     // Perform all drawing operations on memDC instead of dc
     DrawGlideslopeAndLocalizer(memDC);
@@ -231,7 +231,7 @@ BOOL IWVisualization::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     {
         this->approachLength -= 1;
     }
-    else if (zDelta < 0 && this->approachLength < 50)
+    else if (zDelta < 0 && this->approachLength < MAX_RANGE)
     {
         this->approachLength += 1;
     }

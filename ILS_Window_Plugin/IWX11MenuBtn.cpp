@@ -1,8 +1,7 @@
 #include "pch.h"
 #include "IWX11MenuBtn.h"
 
-
-void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11MenuBtn::DrawIcon(CDC* pDC, CRect rect)
 {
     // Calculate the center of the rectangle
     CPoint center = rect.CenterPoint();
@@ -17,13 +16,16 @@ void IWX11MenuBtn::DrawSymbol(CDC* pDC, CRect rect)
     points[1] = CPoint(center.x - triangleBase / 2, center.y - triangleHeight / 2); // Bottom left vertex
     points[2] = CPoint(center.x + triangleBase / 2, center.y - triangleHeight / 2); // Bottom right vertex
 
-    // Select a brush to fill the triangle
-    CBrush brush(RGB(0, 0, 0));  // Black color for the triangle
+    // Select a brush and pen
+    CBrush brush(this->iconColor);
     CBrush* oldBrush = pDC->SelectObject(&brush);
+    CPen pen(PS_SOLID, 1, this->iconColor);
+    CPen* oldPen = pDC->SelectObject(&pen);
 
     // Draw the filled triangle
     pDC->Polygon(points, 3);
 
-    // Restore the previous brush
+    // Restore the previous brush and pen
     pDC->SelectObject(oldBrush);
+    pDC->SelectObject(oldPen);
 }

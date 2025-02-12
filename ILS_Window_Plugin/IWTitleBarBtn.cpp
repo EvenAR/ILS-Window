@@ -36,13 +36,6 @@ void IWTitleBarBtn::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
         pDC->FillSolidRect(&rect, this->backgroundColor);  // White background
     }
 
-    // Draw border (optional: use a different color on hover)
-    CPen pen(PS_SOLID, 1, RGB(0, 0, 0)); // Black pen for the border
-    CPen* oldPen = pDC->SelectObject(&pen);
-    pDC->SelectStockObject(HOLLOW_BRUSH); // No fill for the rectangle
-    pDC->Rectangle(&rect);
-    pDC->SelectObject(oldPen);
-
     // Call DrawSymbol to draw the custom symbol inside
     DrawSymbol(pDC, rect);
 }

@@ -7,6 +7,7 @@
 #define APP_LINE_MARGIN_TOP 0.08
 #define APP_LINE_MARGIN_SIDES 0.08
 #define APP_LINE_MARGIN_BOTTOM 0.35
+#define MAX_RANGE 30 // Nautical miles
 #define LABEL_OFFSET 15
 #define TARGET_RADIUS 5
 #define HISTORY_TRAIL_RADIUS 5
@@ -17,7 +18,7 @@
 class IWVisualization : public CWnd
 {
 public:
-    IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* font);
+    IWVisualization(IWApproachDefinition selectedApproach, IWStyling styling, CFont* mainFont);
     void DrawGlideslopeAndLocalizer(CDC& dc);
     void DrawRadarTargets(CDC& dc);
     void DrawCurrentZoomValue(CDC& dc);
@@ -64,7 +65,7 @@ private:
     CPen radarTargetPen;
     CPen historyTrailPen;
     IWTagMode tagMode;
-    CFont* font;
+    CFont* mainFont;
 
     std::set<std::string> clickedTargets;
 

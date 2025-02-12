@@ -9,8 +9,10 @@ public:
 
 private:
     void DrawBorder(CDC* pdc, CRect rect) override;
-    COLORREF AdjustColorBrightness(RGB color, double factor);
+    void DrawMenuItem(CDC* pdc, CRect bounds, CString text, bool isHovered, bool isChecked) override;
     virtual int GetEdgeCursorPosition(CPoint point) override;
+
+    COLORREF AdjustColorBrightness(COLORREF color, double factor);
 
     const COLORREF lightColor;
     const COLORREF darkColor;

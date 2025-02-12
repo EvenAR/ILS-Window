@@ -16,6 +16,6 @@ void IWCdeMenuBtn::DrawSymbol(CDC* pdc, CRect rect)
     barIcon.top = rect.top + rect.Height() / 2 - 2;
     barIcon.bottom = barIcon.top + 4;
 
-    Draw3dRect(pdc, rect, 1, lightColor, darkColor);
-    Draw3dRect(pdc, barIcon, 1, lightColor, darkColor);
+    DrawThick3dRect(pdc, rect, 1, lightColor, darkColor);
+    DrawThick3dRect(pdc, barIcon, 1, lightColor, darkColor);
 }

@@ -7,10 +7,6 @@
 
 class IWWindow;
 
-struct RGB {
-    int r, g, b;
-};
-
 struct IWTargetPosition {
     int trueAltitude;
     double latitude;
@@ -49,17 +45,22 @@ enum IWTagMode {
     Callsign
 };
 
+enum IWTheme {
+    CDE,
+    X11
+};
+
 struct IWStyling {
-    RGB windowFrameColor;
-    RGB windowFrameTextColor;
-    RGB windowOuterFrameColor;
-    RGB backgroundColor;
-    RGB glideslopeColor;
-    RGB localizerColor;
-    RGB radarTargetColor;
-    RGB historyTrailColor;
-    RGB targetLabelColor;
-    RGB rangeStatusTextColor;
+    COLORREF windowFrameColor;
+    COLORREF windowFrameTextColor;
+    COLORREF windowOuterFrameColor;
+    COLORREF backgroundColor;
+    COLORREF glideslopeColor;
+    COLORREF localizerColor;
+    COLORREF radarTargetColor;
+    COLORREF historyTrailColor;
+    COLORREF targetLabelColor;
+    COLORREF rangeStatusTextColor;
     unsigned int fontSize;
     bool showTagByDefault;
     IWTagMode defaultTagMode;
@@ -68,4 +69,14 @@ struct IWStyling {
 struct IWBehaviourSettings {
     bool openWindowsBasedOnActiveRunways;
     std::string windowStyle;
+};
+
+struct IWConfig {
+    IWStyling styling;
+    IWBehaviourSettings behaviour;
+};
+
+struct IWActiveRunway {
+    std::string airport;
+    std::string runway;
 };

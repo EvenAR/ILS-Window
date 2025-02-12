@@ -4,6 +4,7 @@
 #include "RenderUtils.h"
 #include "IWX11TitleBar.h"
 #include "IWCdeTitleBar.h"
+#include <memory>
 
 #define MAX_PROCEDURES 100
 
@@ -11,6 +12,7 @@
 #define MENU_ITEM_SHOW_LABELS               10001
 #define MENU_ITEM_CORRECT_FOR_TEMPERATURE   10002
 #define MENU_ITEM_CLOSE                     10003
+#define MENU_ITEM_TOGGLE_THEME              10004
 #define MENU_ITEM_PROCEDURES_SEL_START      20000
 #define MENU_ITEM_PROCEDURES_NEW_START      30000
 
@@ -27,27 +29,30 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_ERASEBKGND()
     ON_WM_NCACTIVATE()
     ON_WM_GETMINMAXINFO()
+    ON_WM_INITMENUPOPUP()
+    ON_WM_MEASUREITEM()
+    ON_WM_DRAWITEM()
     ON_MESSAGE(WM_EXITSIZEMOVE, &IWWindow::OnExitSizeMove)
     ON_COMMAND_EX(MENU_ITEM_FLIP, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_SHOW_LABELS, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_CORRECT_FOR_TEMPERATURE, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_CLOSE, &IWWindow::OnMenuOptionSelected)
+    ON_COMMAND_EX(MENU_ITEM_TOGGLE_THEME, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
 
 IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int titleBarHeight, int windowBorderThickness, int windowOuterBorderThickness)
-    : ilsVisualization(selectedApproach, styling, &this->font)
+    : ilsVisualization(selectedApproach, styling, &this->mainFont)
     , TITLE_BAR_HEIGHT(titleBarHeight)
     , WINDOW_BORDER_THICKNESS(windowBorderThickness)
     , WINDOW_OUTER_BORDER_WIDTH(windowOuterBorderThickness)
-    , textColor(RGB(styling.windowFrameTextColor.r, styling.windowFrameTextColor.g, styling.windowFrameTextColor.b))
-    , windowBorderColor(RGB(styling.windowFrameColor.r, styling.windowFrameColor.g, styling.windowFrameColor.b))
-    , windowOuterBorderColor(RGB(styling.windowOuterFrameColor.r, styling.windowOuterFrameColor.g, styling.windowOuterFrameColor.b))
+    , textColor(styling.windowFrameTextColor)
+    , windowBorderColor(styling.windowFrameColor)
+    , windowOuterBorderColor(styling.windowOuterFrameColor)
 {
     float fontPointsSize = styling.fontSize * 72 / 96;
-    this->font.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
-
+    this->mainFont.CreatePointFont(int(fontPointsSize * 10), _T("EuroScope"));
     this->selectedApproach = selectedApproach;
 }
 
@@ -353,35 +358,40 @@ void IWWindow::SetActiveApproach(const IWApproachDefinition& selectedApproach)
 
 void IWWindow::CreatePopupMenu(CPoint point)
 {
-    // Create the main popup menu
-    CMenu menu;
-    menu.CreatePopupMenu();
+    // Dynamically allocate menu to persist beyond this function
+    popupMenu = std::make_unique<CMenu>();
+    popupMenu->CreatePopupMenu();
 
-    // Create the submenu with the available approaches
-    CMenu subMenuSelect;
-    CMenu subMenuOpenNew;
-    subMenuSelect.CreatePopupMenu();
-    subMenuOpenNew.CreatePopupMenu();
+    // Submenus
+    auto subMenuSelect = std::make_unique<CMenu>();
+    auto subMenuOpenNew = std::make_unique<CMenu>();
+    subMenuSelect->CreatePopupMenu();
+    subMenuOpenNew->CreatePopupMenu();
 
     int idCounter = 0;
     for (const IWApproachDefinition& approach : availableApproaches)
     {
-        bool isActive = approach.title == this->selectedApproach.title;
-        int menuItemID = idCounter++;
-        if (isActive) {
-            subMenuSelect.AppendMenu(MF_STRING | MF_CHECKED, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
-        }
-        else {
-            subMenuSelect.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_SEL_START + menuItemID, CString(approach.title.c_str()));
-        }
-        subMenuOpenNew.AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_NEW_START + menuItemID, CString(approach.title.c_str()));
+        bool isActive = (approach.title == this->selectedApproach.title);
+
+        subMenuSelect->AppendMenu(
+            MF_STRING | (isActive ? MF_CHECKED : 0), 
+            MENU_ITEM_PROCEDURES_SEL_START + idCounter,
+            CString(approach.title.c_str())
+        );
+        subMenuOpenNew->AppendMenu(
+            MF_STRING, 
+            MENU_ITEM_PROCEDURES_NEW_START + idCounter, 
+            CString(approach.title.c_str())
+        );
+
+        idCounter++;
     }
 
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect.m_hMenu, _T("View"));
-    menu.AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew.m_hMenu, _T("Open"));
+    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("View"));
+    popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew->Detach(), _T("New window"));
 
     // Add static menu items
-    menu.AppendMenu(
+    popupMenu->AppendMenu(
         MF_STRING | (ilsVisualization.GetShowTagsByDefault() ? MF_CHECKED : MF_UNCHECKED),
         MENU_ITEM_SHOW_LABELS,
         _T("Show labels by default")
@@ -389,31 +399,26 @@ void IWWindow::CreatePopupMenu(CPoint point)
 
     auto airportTemperature = m_latestLiveData.airportTemperatures.find(selectedApproach.airport);
     auto airportTemperatureMenuText =
-        "Apply temperature correction (" 
-        + selectedApproach.airport + ": " 
-        + (airportTemperature != m_latestLiveData.airportTemperatures.end() ? std::to_string(airportTemperature->second) + "°C" : "N/A") 
+        "Apply temperature correction ("
+        + selectedApproach.airport + ": "
+        + (airportTemperature != m_latestLiveData.airportTemperatures.end() ? std::to_string(airportTemperature->second) + "°C" : "N/A")
         + ")";
 
-    menu.AppendMenu(
+    popupMenu->AppendMenu(
         MF_STRING | (ilsVisualization.GetApplyTemperatureCorrection() ? MF_CHECKED : MF_UNCHECKED),
         MENU_ITEM_CORRECT_FOR_TEMPERATURE,
-        _T(airportTemperatureMenuText.c_str())
+        airportTemperatureMenuText.c_str()
     );
-    menu.AppendMenu(
-        MF_STRING,
-        MENU_ITEM_FLIP,
-        _T("Change orientation")
-    );
+    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_FLIP, _T("Change orientation"));
+    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_TOGGLE_THEME, _T("Toggle window style"));
+    popupMenu->AppendMenu(MF_STRING | MF_REMOVE, MENU_ITEM_CLOSE, _T("Close"));
 
-    menu.AppendMenu(
-        MF_STRING | MF_REMOVE,
-        MENU_ITEM_CLOSE,
-        _T("Close")
-    );
-  
-    // Display the menu
-    menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+    popupHMenu = popupMenu->GetSafeHmenu();
+
+    // Show the menu
+    popupMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 }
+
 
 BOOL IWWindow::OnMenuOptionSelected(UINT nID)
 {
@@ -435,6 +440,10 @@ BOOL IWWindow::OnMenuOptionSelected(UINT nID)
     else if (nID == MENU_ITEM_CLOSE)
     {
         this->DestroyWindow();
+    }
+    else if (nID == MENU_ITEM_TOGGLE_THEME)
+    {
+        this->m_listener->OnToggleThemeClicked(this);
     }
     return TRUE;
 }
@@ -461,3 +470,61 @@ void IWWindow::OnProcedureSelected(UINT nID)
     Invalidate();
 }
 
+void IWWindow::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
+{
+    CWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
+
+    if (!bSysMenu)  // Apply only to application menus
+    {
+        for (int i = 0; i < pPopupMenu->GetMenuItemCount(); ++i)
+        {
+            MENUITEMINFO mii = { sizeof(MENUITEMINFO) };
+            mii.fMask = MIIM_FTYPE;
+            pPopupMenu->GetMenuItemInfo(i, &mii, TRUE);
+            mii.fType |= MFT_OWNERDRAW;
+            pPopupMenu->SetMenuItemInfo(i, &mii, TRUE);
+        }
+    }
+}
+
+void IWWindow::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+{
+    if (!popupHMenu) return;
+
+    CMenu* pMenu = CMenu::FromHandle(popupHMenu);
+    if (!pMenu) return;
+
+    CString menuText;
+    pMenu->GetMenuString(lpMeasureItemStruct->itemID, menuText, MF_BYCOMMAND);
+
+    CDC* pDC = GetDC();
+    CFont* pOldFont = pDC->SelectObject(&mainFont);
+
+    CSize textSize = pDC->GetTextExtent(menuText);
+    lpMeasureItemStruct->itemWidth = textSize.cx + extraMenuItemWidth;
+    lpMeasureItemStruct->itemHeight = 24;
+
+    pDC->SelectObject(pOldFont);
+    ReleaseDC(pDC);
+}
+
+void IWWindow::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+    if (lpDrawItemStruct->CtlType == ODT_MENU)  // Check if it's a menu item
+    {
+        CDC* pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
+        CRect rect = lpDrawItemStruct->rcItem;
+        bool isHovered = lpDrawItemStruct->itemState & ODS_SELECTED;
+        bool isChecked = lpDrawItemStruct->itemState & ODS_CHECKED;
+
+        CString menuText;
+        ::GetMenuString((HMENU)lpDrawItemStruct->hwndItem, lpDrawItemStruct->itemID, menuText.GetBuffer(256), 256, MF_BYCOMMAND);
+        menuText.ReleaseBuffer();
+
+        this->DrawMenuItem(pDC, rect, menuText, isHovered, isChecked);
+    }
+    else
+    {
+        CWnd::OnDrawItem(nIDCtl, lpDrawItemStruct);
+    }
+}

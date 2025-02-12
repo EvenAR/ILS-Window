@@ -34,7 +34,7 @@ protected:
     IWTitleBarBtn* iconifyButton;
     IWTitleBarBtn* resizeButton;
 
-    CFont font;
+    CFont mainFont;
 
 private:
     COLORREF backgroundColor;

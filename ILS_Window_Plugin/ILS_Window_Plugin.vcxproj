@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="IWCdeMenuBtn.cpp" />
     <ClCompile Include="IWCdeWindow.cpp" />
+    <ClCompile Include="IWSettings.cpp" />
     <ClCompile Include="IWX11IconifyBtn.cpp" />
     <ClCompile Include="IWCdeIconifyBtn.cpp" />
     <ClCompile Include="IWX11MenuBtn.cpp" />
@@ -129,11 +130,13 @@
     <ClCompile Include="IWCdeTitleBar.cpp" />
     <ClCompile Include="IWVisualization.cpp" />
     <ClCompile Include="IWX11TitleBar.cpp" />
+    <ClCompile Include="IWX11TitleBarBtnBase.cpp" />
     <ClCompile Include="IWX11Window.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="IWWindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ILS_Window_Plugin.def" />
@@ -145,6 +148,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="IWCdeMenuBtn.h" />
     <ClInclude Include="IWCdeWindow.h" />
+    <ClInclude Include="IWContextMenu.h" />
+    <ClInclude Include="IWSettings.h" />
     <ClInclude Include="IWX11IconifyBtn.h" />
     <ClInclude Include="IWCdeIconifyBtn.h" />
     <ClInclude Include="IWX11MenuBtn.h" />
@@ -158,12 +163,14 @@
     <ClInclude Include="IWCdeTitleBar.h" />
     <ClInclude Include="IWVisualization.h" />
     <ClInclude Include="IWX11TitleBar.h" />
+    <ClInclude Include="IWX11TitleBarBtnBase.h" />
     <ClInclude Include="IWX11Window.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="IWUtils.h" />
+    <ClInclude Include="IWWindowManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ILS_Window_Plugin.rc" />
