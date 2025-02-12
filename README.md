@@ -23,7 +23,7 @@ The plugin reads the JSON configuration file when the plugin is loaded. For deta
 - `defaultTagMode` must be set to `"squawk"` (shows only the SSR code) or `"callsign"`.
 
 ## Screenshot
+![image](https://github.com/user-attachments/assets/6dc74ee9-8536-46ee-a3ff-6e04dc470536) ![Screenshot 2025-02-12 215106](https://github.com/user-attachments/assets/0fa96a95-b088-4f0c-92d3-fc6df11aef1e)
 
-![image](https://github.com/user-attachments/assets/49e513da-1fa5-4483-8823-f557a293c05a)
 
 The design is inspired by the Norwegian Air Traffic Control System (NATCON).
