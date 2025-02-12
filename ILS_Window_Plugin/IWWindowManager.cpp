@@ -30,22 +30,6 @@ void IWWindowManager::OnWindowClosed(IWWindow* window)
     }
 }
 
-void IWWindowManager::OnWindowMenuOpenNew(std::string approachTitle)
-{
-    auto availableApproaches = this->settings->GetAvailableApproaches();
-    auto selectedApproach = std::find_if(availableApproaches.begin(), availableApproaches.end(),
-        [&approachTitle](const IWApproachDefinition& approach) {
-            return approach.title == approachTitle;
-        });
-
-    if (selectedApproach != availableApproaches.end()) {
-        OpenApproachView(*selectedApproach);
-    }
-    else {
-        OpenApproachView(availableApproaches[0]); 
-    }
-}
-
 void IWWindowManager::OnWindowRectangleChanged(IWWindow* window)
 {
     CRect windowRect;

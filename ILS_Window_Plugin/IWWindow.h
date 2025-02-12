@@ -18,7 +18,6 @@ class IWWindow;
 class IIWWndEventListener {
 public:
     virtual void OnWindowClosed(IWWindow* window) = 0;
-    virtual void OnWindowMenuOpenNew(std::string title) = 0;
     virtual void OnWindowRectangleChanged(IWWindow* window) = 0;
     virtual void OnToggleThemeClicked(IWWindow* window) = 0;
 };

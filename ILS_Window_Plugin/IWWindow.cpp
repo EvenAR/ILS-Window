@@ -14,7 +14,6 @@
 #define MENU_ITEM_CLOSE                     10003
 #define MENU_ITEM_TOGGLE_THEME              10004
 #define MENU_ITEM_PROCEDURES_SEL_START      20000
-#define MENU_ITEM_PROCEDURES_NEW_START      30000
 
 BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_WM_LBUTTONDOWN()
@@ -39,7 +38,6 @@ BEGIN_MESSAGE_MAP(IWWindow, CWnd)
     ON_COMMAND_EX(MENU_ITEM_CLOSE, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_EX(MENU_ITEM_TOGGLE_THEME, &IWWindow::OnMenuOptionSelected)
     ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_SEL_START, MENU_ITEM_PROCEDURES_SEL_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
-    ON_COMMAND_RANGE(MENU_ITEM_PROCEDURES_NEW_START, MENU_ITEM_PROCEDURES_NEW_START + MAX_PROCEDURES, &IWWindow::OnProcedureSelected)
 END_MESSAGE_MAP()
 
 IWWindow::IWWindow(IWApproachDefinition selectedApproach, IWStyling styling, int titleBarHeight, int windowBorderThickness, int windowOuterBorderThickness)
@@ -364,9 +362,7 @@ void IWWindow::CreatePopupMenu(CPoint point)
 
     // Submenus
     auto subMenuSelect = std::make_unique<CMenu>();
-    auto subMenuOpenNew = std::make_unique<CMenu>();
     subMenuSelect->CreatePopupMenu();
-    subMenuOpenNew->CreatePopupMenu();
 
     int idCounter = 0;
     for (const IWApproachDefinition& approach : availableApproaches)
@@ -378,17 +374,11 @@ void IWWindow::CreatePopupMenu(CPoint point)
             MENU_ITEM_PROCEDURES_SEL_START + idCounter,
             CString(approach.title.c_str())
         );
-        subMenuOpenNew->AppendMenu(
-            MF_STRING, 
-            MENU_ITEM_PROCEDURES_NEW_START + idCounter, 
-            CString(approach.title.c_str())
-        );
 
         idCounter++;
     }
 
     popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("ILS"));
-    //popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuOpenNew->Detach(), _T("New window"));
 
     // Add static menu items
     popupMenu->AppendMenu(
@@ -456,16 +446,6 @@ void IWWindow::OnProcedureSelected(UINT nID)
         // Set the selected approach
         IWApproachDefinition selectedApproach = availableApproaches[index];
         SetActiveApproach(selectedApproach);
-    }
-    else
-    {
-        // Open a new window with the selected approach
-        index = nID - MENU_ITEM_PROCEDURES_NEW_START;
-        if (index >= 0 && index < availableApproaches.size())
-        {
-            IWApproachDefinition selectedApproach = availableApproaches[index];
-            m_listener->OnWindowMenuOpenNew(selectedApproach.title);
-        }
     }
     Invalidate();
 }

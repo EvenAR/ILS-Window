@@ -25,7 +25,6 @@ private:
 
     // Callbacks from a window
     void OnWindowClosed(IWWindow* window) override;
-    void OnWindowMenuOpenNew(std::string approachTitle) override;
     void OnWindowRectangleChanged(IWWindow* window) override;
     void OnToggleThemeClicked(IWWindow* window) override;
 
