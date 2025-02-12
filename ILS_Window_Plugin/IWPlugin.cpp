@@ -77,8 +77,7 @@ void IWPlugin::OnTimer(int seconds)
 
 void IWPlugin::OnAirportRunwayActivityChanged()
 {
-    auto activeRunways = CollectActiveRunways(true);
-    this->windowManager.SyncWithActiveRunways(activeRunways);
+    this->windowManager.SyncWithActiveRunways(CollectActiveRunways(true));
 }
 
 void IWPlugin::OnNewMetarReceived(const char* sStation, const char* sFullMetar)
