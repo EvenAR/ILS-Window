@@ -1,124 +1,23 @@
 #include "pch.h"
 #include "IWPlugin.h"
-#include <json.hpp>
 #include <fstream>
 #include "IWUtils.h"
 #include <regex>
 #include "IWCdeWindow.h"
 #include "IWX11Window.h"
 
-using json = nlohmann::json;
-
-IWPlugin::IWPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT) {
-
-    AFX_MANAGE_STATE(AfxGetStaticModuleState()); // Manage the module state for MFC
-    
-    // Read configuration file
-    std::string jsonFilePath = GetPluginDirectory() + "\\" + CONFIG_FILE_NAME;
-    availableApproaches = ReadApproachDefinitions(jsonFilePath);
-    windowStyling = ReadStyling(jsonFilePath);
-    behaviourSettings = ReadBehaviourSettings(jsonFilePath);
-
-    // Register a custom window class
-    WNDCLASS wndClass = { 0 };
-    wndClass.lpfnWndProc = ::DefWindowProc;
-    wndClass.hInstance = AfxGetInstanceHandle();
-    wndClass.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
-    wndClass.hbrBackground = (HBRUSH)::GetStockObject(WHITE_BRUSH);
-    wndClass.lpszClassName = WINDOW_CLASS_NAME;
-
-    if (!AfxRegisterClass(&wndClass))
-        return;
-
-    LoadSavedWindowPositions();
-    SyncWithActiveRunways();
+IWPlugin::IWPlugin(void) : 
+    CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT),
+    settings(this),
+    windowManager(&settings)
+{
+    this->windowManager.SyncWithActiveRunways(this->CollectActiveRunways(true));
 }
 
 IWPlugin::~IWPlugin()
 {
-    for (const auto& window : windows) {
-        if (window) {
-            delete window;
-        }
-    }
+    
 }
-
-void IWPlugin::ShowWindow(IWApproachDefinition* approach)
-{
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
-    // Check if a window with the same title is already open
-    IWWindow* windowWithSameTitle = nullptr;
-    for (const auto& window : windows) {
-        if (window->GetActiveApproachName() == approach->title) {
-            windowWithSameTitle = window;
-            break;
-        }
-    }
-
-    if (windowWithSameTitle) {
-        // Restore the window and bring it to the front
-        windowWithSameTitle->ShowWindow(SW_RESTORE);
-        windowWithSameTitle->SetForegroundWindow();
-        return;
-    }
-
-    // Calculate the spawning point for the new window
-    CPoint spawningPoint = CPoint(int(windows.size()) * 50, int(windows.size()) * 50 + 100);
-    CSize windowSize = CSize(300, 200);
-
-    // Use the saved position if there is one
-    auto savedPosition = savedWindowPositions.find(approach->title);
-    if (savedPosition != savedWindowPositions.end()) {
-        windowSize = savedPosition->second.Size();
-        spawningPoint = savedPosition->second.TopLeft();
-    }
-    else {
-        // Use the same size as the newest window if there is one.
-        IWWindow* newestWindow = windows.size() > 0 ? windows.back() : nullptr;
-        if (newestWindow) {
-            CRect rect;
-            newestWindow->GetWindowRect(&rect);
-            windowSize = rect.Size();
-            spawningPoint = CPoint(rect.left + 50, rect.top + 50);
-        }
-    }
-
-    IWWindow* newWindow = nullptr;
-    if (this->behaviourSettings.windowStyle == "X11") {
-        newWindow = new IWX11Window(*approach, windowStyling);
-    }
-    else {
-        newWindow = new IWCdeWindow(*approach, windowStyling);
-    }
-   
-    auto hwndPopup = newWindow->CreateEx(
-        WS_EX_TOPMOST | WS_EX_APPWINDOW | WS_EX_NOACTIVATE,
-        WINDOW_CLASS_NAME,
-        _T(approach->title.c_str()),
-        WS_POPUP,
-        spawningPoint.x,
-        spawningPoint.y,
-        windowSize.cx,
-        windowSize.cy,
-        nullptr,
-        nullptr
-    );
-
-    if (!hwndPopup) {
-        delete newWindow;
-        return;
-    }
-
-    newWindow->SetMenu(NULL);
-    newWindow->ShowWindow(SW_SHOWNOACTIVATE); // Show but don't steal focus
-    newWindow->UpdateWindow();
-    newWindow->SetListener(this);
-    newWindow->SetAvailableApproaches(availableApproaches);
-
-    windows.push_back(newWindow);
-}
-
 
 void IWPlugin::OnTimer(int seconds)
 {
@@ -173,14 +72,13 @@ void IWPlugin::OnTimer(int seconds)
         }
     }
 
-    for (auto& window : windows) {
-        window->SendMessage(WM_UPDATE_DATA, reinterpret_cast<WPARAM>(&liveData));
-    }
+    windowManager.HandleLiveData(liveData);
 }
 
 void IWPlugin::OnAirportRunwayActivityChanged()
 {
-    SyncWithActiveRunways();
+    auto activeRunways = CollectActiveRunways(true);
+    this->windowManager.SyncWithActiveRunways(activeRunways);
 }
 
 void IWPlugin::OnNewMetarReceived(const char* sStation, const char* sFullMetar)
@@ -201,17 +99,9 @@ void IWPlugin::OnNewMetarReceived(const char* sStation, const char* sFullMetar)
     }
 }
 
-void IWPlugin::SyncWithActiveRunways()
+std::vector<IWActiveRunway> IWPlugin::CollectActiveRunways(bool forArrival)
 {
-    if (!behaviourSettings.openWindowsBasedOnActiveRunways) {
-        return;
-    }
-
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
-    bool forArrival = true;
-
-    std::vector<IWApproachDefinition*> approachesThatShouldBeOpen;
+    std::vector<IWActiveRunway> activeRunways;
 
     for (auto airport = this->SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT); airport.IsValid(); airport = this->SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
         if (airport.IsElementActive(!forArrival)) {
@@ -222,14 +112,11 @@ void IWPlugin::SyncWithActiveRunways()
                     for (int runwayDirection = 0; runwayDirection < 2; runwayDirection++) {
                         if (runway.IsElementActive(!forArrival, runwayDirection) && runwayAirportName == activeAirportIcao) {
                             auto runwayName = trimString(std::string(runway.GetRunwayName(runwayDirection)));
-                            auto approach = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
-                                [&runwayAirportName, runwayName](const IWApproachDefinition& approach) {
-                                    return approach.airport == runwayAirportName && approach.runway == runwayName;
-                                });
-
-                            if (approach != this->availableApproaches.end()) {
-                                approachesThatShouldBeOpen.push_back(&(*approach));
-                            }
+                            
+                            activeRunways.push_back({
+                                runwayAirportName,
+                                runwayName
+                            });
                         }
                     }
                 }
@@ -237,247 +124,8 @@ void IWPlugin::SyncWithActiveRunways()
         }
     }
 
-    // Find open windows that should be closed
-    for (auto& window : windows) {
-        bool shouldBeClosed = true;
-        for (auto& approach : approachesThatShouldBeOpen) {
-            if (window->GetActiveApproachName() == approach->title) {
-                shouldBeClosed = false;
-            }
-        }
-        if (shouldBeClosed) {
-            window->DestroyWindow();
-        }
-    }
-
-    // Open windows that should be open
-    for (auto& approach : approachesThatShouldBeOpen) {
-        bool alreadyOpen = std::any_of(windows.begin(), windows.end(), [&approach](const IWWindow* window) {
-            return window->GetActiveApproachName() == approach->title;
-        }); 
-
-        if (!alreadyOpen) {
-            this->ShowWindow(approach);
-        }
-    }
+    return activeRunways;
 }
-
-std::vector<IWApproachDefinition> IWPlugin::ReadApproachDefinitions(const std::string& jsonFilePath) {
-    const std::string generalErrorMessage = "Could not load approach definitions";
-
-    std::vector<IWApproachDefinition> approaches;
-
-    // Open the JSON file
-    std::ifstream file(jsonFilePath);
-    if (!file.is_open()) {
-        this->ShowErrorMessage(generalErrorMessage, "Unable to open JSON file '" + jsonFilePath + "'");
-        return approaches;
-    }
-
-    // Parse the JSON file
-    nlohmann::json jsonData;
-    try {
-        file >> jsonData;
-    }
-    catch (const nlohmann::json::parse_error& e) {
-        this->ShowErrorMessage(generalErrorMessage, std::string(e.what()));
-        return approaches;
-    }
-
-    // Check if "approaches" key exists
-    if (!jsonData.contains("approaches") || !jsonData["approaches"].is_array()) {
-        this->ShowErrorMessage(generalErrorMessage, "'approaches' key not found or is not an array.");
-        return approaches;
-    }
-
-    // Iterate over the approaches
-    for (const auto& approachJson : jsonData["approaches"]) {
-        try {
-            IWApproachDefinition approach;
-
-            // Parse individual fields
-            approach.title = approachJson.at("title").get<std::string>();
-            approach.airport = approachJson.at("airport").get<std::string>();
-            approach.runway = approachJson.at("runway").get<std::string>();
-            approach.localizerCourse = approachJson.at("localizerCourse").get<int>();
-            approach.glideslopeAngle = approachJson.at("glideslopeAngle").get<float>();
-            approach.defaultRange = approachJson.at("defaultRange").get<int>();
-            approach.thresholdAltitude = approachJson.at("thresholdAltitude").get<int>();
-            approach.thresholdLatitude = approachJson.at("thresholdLatitude").get<double>();
-            approach.thresholdLongitude = approachJson.at("thresholdLongitude").get<double>();
-            approach.maxOffsetLeft = approachJson.at("maxOffsetLeft").get<double>();
-            approach.maxOffsetRight = approachJson.at("maxOffsetRight").get<double>();
-
-
-            // Add to the list
-            approaches.push_back(approach);
-        }
-        catch (const nlohmann::json::exception& e) {
-            this->ShowErrorMessage(generalErrorMessage, "Error parsing approach data: " + std::string(e.what()));
-        }
-    }
-
-    return approaches;
-}
-
-IWStyling IWPlugin::ReadStyling(const std::string& jsonFilePath) {
-    const std::string generalErrorMessage = "Could not load style settings";
-
-    std::ifstream file(jsonFilePath);
-    if (!file.is_open()) {
-        this->ShowErrorMessage(generalErrorMessage, "Unable to open JSON file: " + jsonFilePath);
-    }
-
-    nlohmann::json jsonData;
-    file >> jsonData;
-
-    auto readColor = [&jsonData, &generalErrorMessage, this](const std::string& key) -> COLORREF {
-        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
-            return HexToRGB(jsonData["styling"][key].get<std::string>());
-        }
-        this->ShowErrorMessage(generalErrorMessage, ("'" + key + "' key not found.").c_str());
-    };
-
-    auto readUnsignedInt = [&jsonData, &generalErrorMessage, this](const std::string& key) -> unsigned int {
-        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
-            return jsonData["styling"][key].get<unsigned int>();
-        }
-        this->ShowErrorMessage(generalErrorMessage, ("'" + key + "' key not found.").c_str());
-        return 0; // Default value when key is not found or is not an unsigned integer
-    };
-
-    auto readUIntWithDefault = [&jsonData, this](const std::string& key, unsigned int defaultValue) -> unsigned int {
-        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
-            return jsonData["styling"][key].get<unsigned int>();
-        }
-        return defaultValue;
-    };
-
-    auto readStringWithDefault = [&jsonData, this](const std::string& key, const std::string& defaultValue) -> std::string {
-        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
-            return jsonData["styling"][key].get<std::string>();
-        }
-        return defaultValue;
-    };
-
-    auto stringToTagMode = [](const std::string& value) -> IWTagMode {
-        if (value == "squawk") {
-            return IWTagMode::Squawk;
-        }
-        return IWTagMode::Callsign;
-    };
-
-    auto readBoolWithDefault = [&jsonData, this](const std::string& key, bool defaultValue) -> bool {
-        if (jsonData.contains("styling") && jsonData["styling"].contains(key)) {
-            return jsonData["styling"][key].get<bool>();
-        }
-        return defaultValue;
-    };
-
-    return IWStyling{
-        readColor("windowFrameColor"),
-        readColor("windowFrameTextColor"),
-        readColor("windowOuterFrameColor"),
-        readColor("backgroundColor"),
-        readColor("glideslopeColor"),
-        readColor("localizerColor"),
-        readColor("radarTargetColor"),
-        readColor("historyTrailColor"),
-        readColor("targetLabelColor"),
-        readColor("rangeStatusTextColor"),
-        readUIntWithDefault("fontSize", 12),
-        readBoolWithDefault("showTagByDefault", true),
-        stringToTagMode(readStringWithDefault("defaultTagMode", "callsign"))
-    };
-}
-
-IWBehaviourSettings IWPlugin::ReadBehaviourSettings(const std::string& jsonFilePath) {
-    std::ifstream file(jsonFilePath);
-    if (!file.is_open()) {
-        this->ShowErrorMessage("Could not load behaviour options", "Unable to open JSON file '" + jsonFilePath + "'");
-    }
-
-    nlohmann::json jsonData;
-    file >> jsonData;
-
-    nlohmann::json jsonObject = jsonData["behaviour"];
-
-    auto readStringWithDefault = [&jsonData, this](const std::string& key, const std::string& defaultValue) -> std::string {
-        if (jsonData.contains("behaviour") && jsonData["behaviour"].contains(key)) {
-            return jsonData["behaviour"][key].get<std::string>();
-        }
-        return defaultValue;
-    };
-
-    return IWBehaviourSettings{
-        jsonObject.at("openWindowsBasedOnActiveRunways").get<bool>(),
-        readStringWithDefault("windowStyle", "X11")
-    };
-}
-
-std::string IWPlugin::GetPluginDirectory() {
-    char modulePath[MAX_PATH];
-    GetModuleFileNameA((HINSTANCE)&__ImageBase, modulePath, sizeof(modulePath));
-    std::string pluginDirectory = std::string(modulePath).substr(0, std::string(modulePath).find_last_of("\\/"));
-    return pluginDirectory;
-}
-
-void IWPlugin::OnWindowClosed(IWWindow* window)
-{
-    auto it = std::find(windows.begin(), windows.end(), window);
-    if (it != windows.end()) {
-        windows.erase(it);
-    }
-}
-
-void IWPlugin::OnWindowMenuOpenNew(std::string approachTitle)
-{
-    auto selectedApproach = std::find_if(availableApproaches.begin(), availableApproaches.end(),
-        [&approachTitle](const IWApproachDefinition& approach) {
-            return approach.title == approachTitle;
-        });
-
-    if (selectedApproach != availableApproaches.end()) {
-        ShowWindow(&(*selectedApproach));
-    }
-    else {
-        ShowWindow(&availableApproaches[0]);
-    }
-}
-
-void IWPlugin::OnWindowRectangleChanged(IWWindow* window)
-{
-    CRect windowRect;
-    window->GetWindowRect(&windowRect);
-    std::string name = window->GetActiveApproachName();
-    std::string description = name + " pos.";
-    std::string rect = std::to_string(windowRect.left) + "," + std::to_string(windowRect.top) + "," + std::to_string(windowRect.right) + "," + std::to_string(windowRect.bottom);
-    SaveDataToSettings(name.c_str(), description.c_str(), rect.c_str());
-
-    savedWindowPositions[name] = windowRect;
-}
-
-void IWPlugin::LoadSavedWindowPositions()
-{
-    // For every available approach, check if there is a saved position
-    for (auto& approach : availableApproaches) {
-        const char* settings = GetDataFromSettings(approach.title.c_str());
-        if (settings) {
-            std::string settingsString = std::string(settings);
-            std::regex regex("([0-9]+),([0-9]+),([0-9]+),([0-9]+)");
-            std::smatch match;
-            if (std::regex_search(settingsString, match, regex)) {
-                CRect rect;
-                rect.left = std::stoi(match[1]);
-                rect.top = std::stoi(match[2]);
-                rect.right = std::stoi(match[3]);
-                rect.bottom = std::stoi(match[4]);
-                savedWindowPositions[approach.title] = rect;
-            }
-        }
-    }
-}
-
 
 bool IWPlugin::OnCompileCommand(const char* sCommandLine)
 {
@@ -490,28 +138,20 @@ bool IWPlugin::OnCompileCommand(const char* sCommandLine)
     }
 
     // Extract the argument after ".ils "
-    std::string argument = stringToUpper(trimString(command.substr(prefix.length())));
-
-    if (argument.empty()) {
+    std::string approachName = stringToUpper(trimString(command.substr(prefix.length())));
+    if (approachName.empty()) {
         this->ShowErrorMessage(generalError, "No approach name specified after '.ils'.");
         return false;
     }
 
-    // Find the approach by title
-    auto it = std::find_if(this->availableApproaches.begin(), this->availableApproaches.end(),
-        [&argument](const IWApproachDefinition& approach) {
-            return approach.title == argument;
-        });
+    bool success = this->windowManager.Open(approachName);
 
-    if (it != this->availableApproaches.end()) {
-        // Approach found: Open the approach window
-        this->ShowWindow(&(*it));
-        return true; // Command handled
+    if (!success) {
+        this->ShowErrorMessage(generalError, "Could not find approach with name '" + approachName + "'.");
+        return false;
     }
     else {
-        // Approach not found
-        this->ShowErrorMessage(generalError, "Approach '" + argument + "' not found.");
-        return false; // Command not handled
+        return true; // Command was handled
     }
 }
 

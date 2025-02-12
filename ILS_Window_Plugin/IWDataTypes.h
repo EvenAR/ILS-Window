@@ -45,6 +45,11 @@ enum IWTagMode {
     Callsign
 };
 
+enum IWTheme {
+    CDE,
+    X11
+};
+
 struct IWStyling {
     COLORREF windowFrameColor;
     COLORREF windowFrameTextColor;
@@ -64,4 +69,14 @@ struct IWStyling {
 struct IWBehaviourSettings {
     bool openWindowsBasedOnActiveRunways;
     std::string windowStyle;
+};
+
+struct IWConfig {
+    IWStyling styling;
+    IWBehaviourSettings behaviour;
+};
+
+struct IWActiveRunway {
+    std::string airport;
+    std::string runway;
 };

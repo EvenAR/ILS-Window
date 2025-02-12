@@ -370,10 +370,19 @@ void IWWindow::CreatePopupMenu(CPoint point)
     for (const IWApproachDefinition& approach : availableApproaches)
     {
         bool isActive = (approach.title == this->selectedApproach.title);
-        int menuItemID = MENU_ITEM_PROCEDURES_SEL_START + idCounter++;
 
-        subMenuSelect->AppendMenu(MF_STRING | (isActive ? MF_CHECKED : 0), menuItemID, CString(approach.title.c_str()));
-        subMenuOpenNew->AppendMenu(MF_STRING, MENU_ITEM_PROCEDURES_NEW_START + menuItemID, CString(approach.title.c_str()));
+        subMenuSelect->AppendMenu(
+            MF_STRING | (isActive ? MF_CHECKED : 0), 
+            MENU_ITEM_PROCEDURES_SEL_START + idCounter,
+            CString(approach.title.c_str())
+        );
+        subMenuOpenNew->AppendMenu(
+            MF_STRING, 
+            MENU_ITEM_PROCEDURES_NEW_START + idCounter, 
+            CString(approach.title.c_str())
+        );
+
+        idCounter++;
     }
 
     popupMenu->AppendMenu(MF_POPUP, (UINT_PTR)subMenuSelect->Detach(), _T("View"));

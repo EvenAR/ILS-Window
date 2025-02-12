@@ -7,11 +7,11 @@
 #include "IWDataTypes.h"
 #include <regex>
 
-std::string trimString(const std::string& value) {
+inline std::string trimString(const std::string& value) {
     return std::regex_replace(value, std::regex("^ +| +$|( ) +"), "$1");
 }
 
-std::string stringToUpper(std::string s)
+inline std::string stringToUpper(std::string s)
 {
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return std::toupper(c); } // correct
@@ -19,7 +19,7 @@ std::string stringToUpper(std::string s)
     return s;
 }
 
-COLORREF HexToRGB(const std::string& hexColor) {
+inline COLORREF HexToRGB(const std::string& hexColor) {
     int red, green, blue;
 
     if (hexColor.size() == 7 && hexColor[0] == '#') {

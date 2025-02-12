@@ -2,51 +2,28 @@
 
 #include <EuroScopePlugIn.h>
 #include <vector>
-#include "IWWindow.h"
 #include "IWDataTypes.h"
 #include <map>
+#include "IWSettings.h"
+#include "IWWindowManager.h"
 
-#define WINDOW_CLASS_NAME _T("IWWindow")
+class IWPlugin : public EuroScopePlugIn::CPlugIn {
+public:
+    IWPlugin();
+    ~IWPlugin();
 
-#define MY_PLUGIN_NAME          "ILS Window Plugin"
-#define MY_PLUGIN_VERSION       PLUGIN_VERSION
-#define MY_PLUGIN_DEVELOPER     CONTRIBUTORS
-#define MY_PLUGIN_COPYRIGHT     "GPL v3"
-
-#define CONFIG_FILE_NAME        "ILS_window_plugin-config.json"
-
-class IWPlugin : public EuroScopePlugIn::CPlugIn, IIWWndEventListener {
 private:
-    std::vector<IWWindow*> windows;
-    std::vector<IWApproachDefinition> availableApproaches;
-    IWStyling windowStyling;
-    IWBehaviourSettings behaviourSettings;
-    std::map<std::string, CRect> savedWindowPositions;
+    IWWindowManager windowManager;
     std::map<std::string, int> airportTemperatures;
+    IWSettings settings;
 
-    void ShowWindow(IWApproachDefinition* approach);
-    void SyncWithActiveRunways();
-    void LoadSavedWindowPositions();
-    void ShowErrorMessage(std::string consequence, std::string details);
-
-    bool autoOpenWhenRunwaysChanges = true;
-
-    // Euroscope API
+    // Euroscope callbacks
     bool OnCompileCommand(const char* sCommandLine) override;
     void OnTimer(int seconds) override;
     void OnAirportRunwayActivityChanged() override;
     void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
 
-    // Events from a window
-    void OnWindowClosed(IWWindow* window) override;
-    void OnWindowMenuOpenNew(std::string approachTitle) override;
-    void OnWindowRectangleChanged(IWWindow* window) override;
-public:
-    IWPlugin();
-    ~IWPlugin();
-
-    std::vector<IWApproachDefinition> ReadApproachDefinitions(const std::string& jsonFilePath);
-    IWStyling ReadStyling(const std::string& iniFilePath);
-    IWBehaviourSettings ReadBehaviourSettings(const std::string& jsonFilePath);
-    std::string GetPluginDirectory();
+    // Helper functions for the Euroscope API
+    std::vector<IWActiveRunway> CollectActiveRunways(bool forArrival);
+    void ShowErrorMessage(std::string consequence, std::string details);
 };
