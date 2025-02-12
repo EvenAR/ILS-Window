@@ -144,8 +144,9 @@ void IWWindowManager::SyncWithActiveRunways(std::vector<IWActiveRunway> activeRu
         return;
     }
 
-
     std::vector<IWApproachDefinition> approachesThatShouldBeOpen;
+
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
     // Find approaches that should be open
     for (auto& approach : this->settings->GetAvailableApproaches()) {
