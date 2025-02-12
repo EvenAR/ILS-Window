@@ -130,6 +130,7 @@
     <ClCompile Include="IWCdeTitleBar.cpp" />
     <ClCompile Include="IWVisualization.cpp" />
     <ClCompile Include="IWX11TitleBar.cpp" />
+    <ClCompile Include="IWX11TitleBarBtnBase.cpp" />
     <ClCompile Include="IWX11Window.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -162,6 +163,7 @@
     <ClInclude Include="IWCdeTitleBar.h" />
     <ClInclude Include="IWVisualization.h" />
     <ClInclude Include="IWX11TitleBar.h" />
+    <ClInclude Include="IWX11TitleBarBtnBase.h" />
     <ClInclude Include="IWX11Window.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RenderUtils.h" />

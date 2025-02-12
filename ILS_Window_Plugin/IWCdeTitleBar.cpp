@@ -14,7 +14,7 @@ IWCdeTitleBar::IWCdeTitleBar(COLORREF backgroundColor, COLORREF textColor, COLOR
 
     this->iconifyButton = new IWCdeIconifyBtn(backgroundColor, lightColor, darkColor);
     this->menuButton = new IWCdeMenuBtn(backgroundColor, lightColor, darkColor);
-    this->resizeButton = new IWX11ResizeBtn(backgroundColor);
+    this->resizeButton = new IWX11ResizeBtn(backgroundColor, textColor);
 }
 
 void IWCdeTitleBar::PositionButtons(const CRect& rect)

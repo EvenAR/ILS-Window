@@ -5,7 +5,7 @@
 IWX11Window::IWX11Window(IWApproachDefinition selectedApproach, IWStyling styling)
     : IWWindow(selectedApproach, styling, 26, 3, 1)
 {
-    this->titleBar = new IWX11TitleBar(windowBorderColor, textColor, this);
+    this->titleBar = new IWX11TitleBar(windowBorderColor, styling.windowFrameTextColor, this);
     this->menuBgColor = styling.windowFrameColor;
     this->menuTextColor = styling.windowFrameTextColor;
     this->extraMenuItemWidth = 20;

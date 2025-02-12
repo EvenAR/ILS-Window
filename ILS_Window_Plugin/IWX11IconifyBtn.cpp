@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "IWX11IconifyBtn.h"
 
-void IWX11IconifyBtn::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11IconifyBtn::DrawIcon(CDC* pDC, CRect rect)
 {
     // Draw a black circle in the center
-    CBrush brush(RGB(0, 0, 0)); // Solid black brush for the circle
+    CBrush brush(this->iconColor); // Solid black brush for the circle
     CBrush* oldBrush = pDC->SelectObject(&brush);
+    CPen pen(PS_SOLID, 1, this->iconColor);
+    CPen* oldPen = pDC->SelectObject(&pen);
 
     int radius = min(rect.Width(), rect.Height()) / 3; // Circle radius
     CPoint center = rect.CenterPoint();
@@ -13,4 +15,5 @@ void IWX11IconifyBtn::DrawSymbol(CDC* pDC, CRect rect)
 
     // Restore the old GDI objects
     pDC->SelectObject(oldBrush);
+    pDC->SelectObject(oldPen);
 }

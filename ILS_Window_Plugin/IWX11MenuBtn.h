@@ -1,9 +1,11 @@
 #pragma once
-#include "IWTitleBarBtn.h"
+#include "IWX11TitleBarBtnBase.h"
 
-class IWX11MenuBtn : public IWTitleBarBtn
+class IWX11MenuBtn : public IWX11TitleBarBtnBase
 {
-    using IWTitleBarBtn::IWTitleBarBtn;
-    void DrawSymbol(CDC* pDC, CRect rect) override;
+    using IWX11TitleBarBtnBase::IWX11TitleBarBtnBase;
+
+private:
+    void DrawIcon(CDC* pDC, CRect rect) override;
 };
 
