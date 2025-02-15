@@ -149,27 +149,30 @@ void IWVisualization::DrawRadarTargets(CDC& dc)
                     if (!isClicked) continue;
                 }
 
-                dc.MoveTo(ptTopView);
-                dc.LineTo(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET);
-
-                // Callsign label
-                dc.SetTextColor(targetLabelColor);
-                dc.SetBkMode(TRANSPARENT);
-
-
-                CString targetLabel;
+                CString targetLabelText;
                 if (this->tagMode == IWTagMode::Squawk) {
-                    targetLabel.Format(_T("%s"), radarTarget.squawk.c_str());
+                    targetLabelText.Format(_T("%s"), radarTarget.squawk.c_str());
                 }
                 else if (this->tagMode == IWTagMode::Callsign) {
-                    targetLabel.Format(_T("%s"), radarTarget.callsign.c_str());
+                    targetLabelText.Format(_T("%s"), radarTarget.callsign.c_str());
                 }
+                CSize textSize = dc.GetTextExtent(targetLabelText);
 
                 // Draw the label
-                CSize textSize = dc.GetTextExtent(targetLabel);
-                CPoint labelPosition(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET);
+                CPoint labelPosition = this->leftToRight
+                    ? CPoint(ptTopView.x - textSize.cx - LABEL_OFFSET, ptTopView.y + LABEL_OFFSET)  // Left side of the target
+                    : CPoint(ptTopView.x + LABEL_OFFSET, ptTopView.y + LABEL_OFFSET); // Right side of the target
+
+                dc.SetTextColor(targetLabelColor);
+                dc.SetBkMode(TRANSPARENT);
+               
                 CRect labelRect(labelPosition.x, labelPosition.y, labelPosition.x + textSize.cx, labelPosition.y + textSize.cy * 2);
-                dc.DrawText(targetLabel, labelRect, DT_LEFT);
+                dc.DrawText(targetLabelText, labelRect, this->leftToRight ? DT_LEFT : DT_RIGHT);
+                 
+                dc.MoveTo(ptTopView);
+                this->leftToRight 
+                    ? dc.LineTo(labelRect.right, labelRect.top) 
+                    : dc.LineTo(labelRect.left, labelRect.top);
             }
         }
     }

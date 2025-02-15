@@ -400,7 +400,7 @@ void IWWindow::CreatePopupMenu(CPoint point)
         airportTemperatureMenuText.c_str()
     );
     popupMenu->AppendMenu(MF_STRING, MENU_ITEM_FLIP, _T("Change orientation"));
-    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_TOGGLE_THEME, _T("Toggle window style"));
+    popupMenu->AppendMenu(MF_STRING, MENU_ITEM_TOGGLE_THEME, _T("Change window style"));
     popupMenu->AppendMenu(MF_STRING | MF_REMOVE, MENU_ITEM_CLOSE, _T("Close"));
 
     popupHMenu = popupMenu->GetSafeHmenu();
