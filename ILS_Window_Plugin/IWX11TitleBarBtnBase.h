@@ -12,6 +12,11 @@ private:
 
 protected:
     virtual void DrawIcon(CDC* pdc, CRect rect, bool focused) = 0;
-    COLORREF iconColor;
+    CBrush backgroundDefaultBrush;
+    CBrush backgroundFocusBrush;
+    CBrush iconDefaultBrush;
+    CBrush iconFocusBrush;
+    CPen iconDefaultPen;
+    CPen iconFocusPen;
 };
 

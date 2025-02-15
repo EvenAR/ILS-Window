@@ -4,10 +4,8 @@
 void IWX11IconifyBtn::DrawIcon(CDC* pDC, CRect rect, bool focused)
 {
     // Draw a black circle in the center
-    CBrush brush(this->iconColor); // Solid black brush for the circle
-    CBrush* oldBrush = pDC->SelectObject(&brush);
-    CPen pen(PS_SOLID, 1, this->iconColor);
-    CPen* oldPen = pDC->SelectObject(&pen);
+    CBrush* oldBrush = pDC->SelectObject(focused ? &iconFocusBrush : &iconDefaultBrush);
+    CPen* oldPen = pDC->SelectObject(focused ? &iconFocusPen : &iconDefaultPen);
 
     int radius = min(rect.Width(), rect.Height()) / 3; // Circle radius
     CPoint center = rect.CenterPoint();

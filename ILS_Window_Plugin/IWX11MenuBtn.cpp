@@ -17,10 +17,8 @@ void IWX11MenuBtn::DrawIcon(CDC* pDC, CRect rect, bool focused)
     points[2] = CPoint(center.x + triangleBase / 2, center.y - triangleHeight / 2); // Bottom right vertex
 
     // Select a brush and pen
-    CBrush brush(this->iconColor);
-    CBrush* oldBrush = pDC->SelectObject(&brush);
-    CPen pen(PS_SOLID, 1, this->iconColor);
-    CPen* oldPen = pDC->SelectObject(&pen);
+    CBrush* oldBrush = pDC->SelectObject(focused ? &iconFocusBrush : &iconDefaultBrush);
+    CPen* oldPen = pDC->SelectObject(focused ? &iconFocusPen : &iconDefaultPen);
 
     // Draw the filled triangle
     pDC->Polygon(points, 3);
