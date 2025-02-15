@@ -49,7 +49,7 @@ void IWX11TitleBar::PositionButtons(const CRect& rect)
         iconifyButton->MoveWindow(iconifyButtonRect);
 }
 
-void IWX11TitleBar::DrawTitle(CDC* pdc, CRect rect, CString title)
+void IWX11TitleBar::DrawTitle(CDC* pdc, CRect rect, CString title, bool isBeingDragged)
 {
     CRect textArea = rect;
     textArea.left += 5;

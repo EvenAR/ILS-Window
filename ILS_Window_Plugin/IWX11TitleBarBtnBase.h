@@ -8,10 +8,10 @@ public:
     IWX11TitleBarBtnBase(COLORREF backgroundColor, COLORREF iconColor);
 
 private:
-    void DrawSymbol(CDC* pDC, CRect rect) override;
+    void DrawSymbol(CDC* pDC, CRect rect, bool focused) override;
 
 protected:
-    virtual void DrawIcon(CDC* pdc, CRect rect) = 0;
+    virtual void DrawIcon(CDC* pdc, CRect rect, bool focused) = 0;
     COLORREF iconColor;
 };
 

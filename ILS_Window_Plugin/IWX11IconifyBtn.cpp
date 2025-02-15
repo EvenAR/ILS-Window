@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "IWX11IconifyBtn.h"
 
-void IWX11IconifyBtn::DrawIcon(CDC* pDC, CRect rect)
+void IWX11IconifyBtn::DrawIcon(CDC* pDC, CRect rect, bool focused)
 {
     // Draw a black circle in the center
     CBrush brush(this->iconColor); // Solid black brush for the circle

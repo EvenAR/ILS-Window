@@ -8,7 +8,7 @@ IWCdeMenuBtn::IWCdeMenuBtn(COLORREF backgroundColor, COLORREF lightColor, COLORR
     this->darkColor = darkColor;
 }
 
-void IWCdeMenuBtn::DrawSymbol(CDC* pdc, CRect rect)
+void IWCdeMenuBtn::DrawSymbol(CDC* pdc, CRect rect, bool focused)
 {
     CRect barIcon = rect;
     barIcon.left = rect.left + rect.Width() * 0.25;
@@ -16,6 +16,12 @@ void IWCdeMenuBtn::DrawSymbol(CDC* pdc, CRect rect)
     barIcon.top = rect.top + rect.Height() / 2 - 2;
     barIcon.bottom = barIcon.top + 4;
 
-    DrawThick3dRect(pdc, rect, 1, lightColor, darkColor);
+    if (focused) {
+        DrawThick3dRect(pdc, rect, 1, darkColor, lightColor);
+    }
+    else {
+        DrawThick3dRect(pdc, rect, 1, lightColor, darkColor);
+    }
+
     DrawThick3dRect(pdc, barIcon, 1, lightColor, darkColor);
 }

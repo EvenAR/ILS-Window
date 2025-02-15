@@ -12,7 +12,7 @@ class IWCdeTitleBar : public IWTitleBar {
 
     private: 
         void PositionButtons(const CRect& rect) override;
-        void DrawTitle(CDC* pdc, CRect rect, CString title) override;
+        void DrawTitle(CDC* pdc, CRect rect, CString title, bool isBeingDragged) override;
 
         COLORREF backgroundColor;
         COLORREF textColor;

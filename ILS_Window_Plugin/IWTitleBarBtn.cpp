@@ -28,16 +28,14 @@ void IWTitleBarBtn::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
     // Get the button's rectangle
     CRect rect = lpDrawItemStruct->rcItem;
 
-    // If the button is hovered, change the background color
-    if (mouseOver) {
-        pDC->FillSolidRect(&rect, this->backgroundColorHover);  // Light blue background on hover
-    }
-    else {
-        pDC->FillSolidRect(&rect, this->backgroundColor);  // White background
-    }
+    UINT state = lpDrawItemStruct->itemState;
+
+    bool isFocused = (state & ODS_SELECTED) || (state & ODS_HOTLIGHT);
+
+    pDC->FillSolidRect(&rect, this->backgroundColor);  // White background
 
     // Call DrawSymbol to draw the custom symbol inside
-    DrawSymbol(pDC, rect);
+    DrawSymbol(pDC, rect, isFocused);
 }
 
 void IWTitleBarBtn::SetButtonID(int id)
@@ -72,9 +70,6 @@ void IWTitleBarBtn::OnMouseLeave() {
 
 void IWTitleBarBtn::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    mouseOver = TRUE;
-    Invalidate();
-
     CWnd* parent = GetParent();
     if (buttonID != -1 && parent) {
         parent->SendMessage(WM_COMMAND, this->buttonID);

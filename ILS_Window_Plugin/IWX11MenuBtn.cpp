@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "IWX11MenuBtn.h"
 
-void IWX11MenuBtn::DrawIcon(CDC* pDC, CRect rect)
+void IWX11MenuBtn::DrawIcon(CDC* pDC, CRect rect, bool focused)
 {
     // Calculate the center of the rectangle
     CPoint center = rect.CenterPoint();

@@ -6,7 +6,7 @@ IWX11TitleBarBtnBase::IWX11TitleBarBtnBase(COLORREF backgroundColor, COLORREF ic
     this->iconColor = iconColor;
 }
 
-void IWX11TitleBarBtnBase::DrawSymbol(CDC* pDC, CRect rect)
+void IWX11TitleBarBtnBase::DrawSymbol(CDC* pDC, CRect rect, bool focused)
 {
     // Draw border (optional: use a different color on hover)
     CPen pen(PS_SOLID, 1, this->iconColor); // Black pen for the border
@@ -15,5 +15,5 @@ void IWX11TitleBarBtnBase::DrawSymbol(CDC* pDC, CRect rect)
     pDC->Rectangle(&rect);
     pDC->SelectObject(oldPen);
 
-    this->DrawIcon(pDC, rect);
+    this->DrawIcon(pDC, rect, focused);
 }

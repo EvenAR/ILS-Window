@@ -9,17 +9,18 @@ DECLARE_MESSAGE_MAP()
 public:
     IWTitleBarBtn(COLORREF backgroundColor);
     void SetButtonID(int id);
-
     virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 
+
 protected:
-    virtual void DrawSymbol(CDC* pDC, CRect rect) = 0;
+    virtual void DrawSymbol(CDC* pDC, CRect rect, bool focused) = 0;
+
+    COLORREF backgroundColor;
+    COLORREF backgroundColorHover;
 
 private:
     BOOL mouseOver = FALSE;
     int buttonID = -1;
-    COLORREF backgroundColor;
-    COLORREF backgroundColorHover;
 
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);

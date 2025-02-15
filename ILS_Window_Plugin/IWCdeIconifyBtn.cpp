@@ -8,7 +8,7 @@ IWCdeIconifyBtn::IWCdeIconifyBtn(COLORREF backgroundColor, COLORREF lightColor, 
     this->darkColor = darkColor;
 }
 
-void IWCdeIconifyBtn::DrawSymbol(CDC* pdc, CRect rect)
+void IWCdeIconifyBtn::DrawSymbol(CDC* pdc, CRect rect, bool focused)
 {
     CRect buttonFrame = rect;
     buttonFrame.left = rect.right - rect.Height();
@@ -19,6 +19,12 @@ void IWCdeIconifyBtn::DrawSymbol(CDC* pdc, CRect rect)
     icon.top = buttonFrame.top + buttonFrame.Width() * 0.4;
     icon.bottom = buttonFrame.bottom - buttonFrame.Width() * 0.4;
 
-    DrawThick3dRect(pdc, buttonFrame, 1, lightColor, darkColor);
+    if (focused) {
+        DrawThick3dRect(pdc, rect, 1, darkColor, lightColor);
+    }
+    else {
+        DrawThick3dRect(pdc, rect, 1, lightColor, darkColor);
+    }
+
     DrawThick3dRect(pdc, icon, 1, lightColor, darkColor);
 }

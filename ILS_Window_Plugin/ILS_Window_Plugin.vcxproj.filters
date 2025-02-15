@@ -81,8 +81,14 @@
     <ClCompile Include="IWX11Window.cpp">
       <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
-    <ClCompile Include="IWContextMenu.cpp">
+    <ClCompile Include="IWSettings.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IWWindowManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IWX11TitleBarBtnBase.cpp">
+      <Filter>Source Files\Theme\X11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +174,15 @@
     </ClInclude>
     <ClInclude Include="IWContextMenu.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IWSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IWWindowManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IWX11TitleBarBtnBase.h">
+      <Filter>Header Files\Theme\X11</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

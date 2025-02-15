@@ -32,9 +32,14 @@ void IWCdeTitleBar::PositionButtons(const CRect& rect)
     titleArea.right = iconifyButtonRect.left;
 }
 
-void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect, CString title)
+void IWCdeTitleBar::DrawTitle(CDC* pdc, CRect rect, CString title, bool isBeingDragged)
 {
-    DrawThick3dRect(pdc, titleArea, 1, lightColor, darkColor);
+    if (isBeingDragged) {
+        DrawThick3dRect(pdc, titleArea, 1, darkColor, lightColor);
+    }
+    else {
+        DrawThick3dRect(pdc, titleArea, 1, lightColor, darkColor);
+    }
 
     auto oldFont = pdc->SelectObject(this->mainFont);
     pdc->SetTextColor(this->textColor);

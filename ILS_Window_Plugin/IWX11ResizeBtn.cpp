@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "IWX11ResizeBtn.h"
 
-void IWX11ResizeBtn::DrawIcon(CDC* pDC, CRect rect) {
+void IWX11ResizeBtn::DrawIcon(CDC* pDC, CRect rect, bool focused) {
     // Create a 1px black pen
     CPen pen(PS_SOLID, 1, this->iconColor);
     CPen* oldPen = pDC->SelectObject(&pen);

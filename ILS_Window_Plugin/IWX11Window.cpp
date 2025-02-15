@@ -23,6 +23,7 @@ void IWX11Window::DrawBorder(CDC* pdc, CRect windowRect)
 
 int IWX11Window::GetEdgeCursorPosition(CPoint point)
 {
+    // The X11 theme does not support resizing using the window edge
     return 0;
 }
 

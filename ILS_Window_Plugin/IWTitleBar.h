@@ -15,7 +15,7 @@ public:
 
 class IWTitleBarBtn;
 
-class IWTitleBar : public CStatic
+class IWTitleBar : public CWnd
 {
     DECLARE_DYNAMIC(IWTitleBar)
     DECLARE_MESSAGE_MAP()
@@ -23,12 +23,13 @@ class IWTitleBar : public CStatic
 public:
     IWTitleBar(COLORREF backgroundColor, int fontSize, IWTitleBarEventListener* listener);
     BOOL CreateTopBar(CWnd* pParentWnd, const CRect& rect, UINT nID);
+    void SetMenuState(bool isOpen);
 
     virtual ~IWTitleBar() {}
 
 protected:
     virtual void PositionButtons(const CRect& rect) {};
-    virtual void DrawTitle(CDC* pdc, CRect rect, CString title) {};
+    virtual void DrawTitle(CDC* pdc, CRect rect, CString title, bool isBeingDragged) {};
 
     IWTitleBarBtn* menuButton;
     IWTitleBarBtn* iconifyButton;
@@ -39,12 +40,21 @@ protected:
 private:
     COLORREF backgroundColor;
     IWTitleBarEventListener* eventListener;
+    bool isBeingDragged = false;
 
     afx_msg void OnPaint();
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnIconifyButtonClicked();
     afx_msg void OnMenuButtonClicked();
     afx_msg void OnResizeButtonPressed();
     afx_msg void OnSize(UINT nType, int cx, int cy);
-};
+    afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 
+    // Window dragging
+    CPoint lastPoint;
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void StartDragging(CPoint point);
+    afx_msg void StopDragging();
+    afx_msg void HandleMouseMove(CPoint point);
+};
