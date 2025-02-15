@@ -76,27 +76,13 @@ void IWTitleBar::OnLButtonDown(UINT nFlags, CPoint point)
     if (!pParent)
         return;
 
-    CRect resizeButtonRect;
-    resizeButton->GetClientRect(&resizeButtonRect);
-    resizeButton->ClientToScreen(&resizeButtonRect);
-
-    if (resizeButtonRect.PtInRect(point)) {
-        this->eventListener->OnResizeStart();
+    if (!isBeingDragged)
+    {
+        StartDragging(point);
     }
-    else {
-        if (!isBeingDragged)
-        {
-            StartDragging(point);
-        }
 
-        // Forward the message to the parent to start dragging the window
-        CWnd* pParent = GetParent();
-        if (pParent)
-        {
-            // Forward the message to the parent so it knows it's being dragged
-            pParent->SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
-        }
-    }
+    // Forward the message to the parent so it knows it's being dragged
+    pParent->SendMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
 
     CWnd::OnLButtonDown(nFlags, point);
 }
